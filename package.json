@@ -1,0 +1,32 @@
+{
+  "name": "black-jack",
+  "version": "1.0.0",
+  "description": "An interactive card game",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MarkH89/black-jack.git"
+  },
+  "keywords": [
+    "Javascript",
+    "Cards",
+    "Black",
+    "Jack",
+    "Cards"
+  ],
+  "author": "Markus Aleksander Holden",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MarkH89/black-jack/issues"
+  },
+  "homepage": "https://github.com/MarkH89/black-jack#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.2.0",
+    "@babel/core": "^7.2.0",
+    "@babel/preset-env": "^7.2.0",
+    "uglify-js": "^3.4.9"
+  }
+}

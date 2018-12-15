@@ -3,7 +3,7 @@ import { GameManager } from "./game-manager.js";
 import { ViewManager } from "./view-manager.js";
 import { playerObject } from "./player-object.js";
 
-const gameMgr = new GameManager("DEBUG", cards, 50);
+const gameMgr = new GameManager("DEBUG", cards);
 const viewMgr = new ViewManager();
 
 (function gameInitialisation() {
@@ -121,9 +121,48 @@ function playRound() {
 };
 // End the Round
 function endRound() {
+
+    gameMgr.outputDetail("End of Round.");
+
     // View Update
     viewUpdate();
+
+    // Check Win
+    checkWin();
+
+    if (gameMgr.checkGameEnded()) {
+
+        // If deck is empty, flip the deck
+        if (gameMgr.checkDeckIsEmpty()) {
+            flipdeck();
+        }
+
+        // Update to next player
+        gameMgr.updateToNextPlayer();
+
+        if (gameMgr.getCurrentPlayer().checkIsHuman()) {
+            clearInterval(gameMgr.getAIInterval());
+            playRound();
+        } else {
+            gameMgr.setAIInterval(window.setTimeout(playRound, 1500));
+        }
+    }
 };
+
+function checkWin() {
+    if (gameMgr.getCurrentPlayer().getCurrentHand().length == 0) {
+        gameMgr.outputDetail("Game has been won");
+        gameMgr.updateState("ENDED");
+        clearInterval(gameMgr.getAIInterval());
+        return;
+    }
+    return;
+}
+function flipdeck() {
+    gameMgr.outputDetail("Flipping deck.");
+    gameMgr.setDeck(gameMgr.getDiscardDeck().reverse());
+    gameMgr.prepareDiscardDeck();
+}
 
 // Update the view
 function viewUpdate() {

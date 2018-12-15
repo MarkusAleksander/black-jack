@@ -63,7 +63,7 @@ export class playerObject {
             let playableCards = [];
             let playableCardsIndex = [];
             // Filter current hand to playable card index values
-            playableCards = this.currentHand.filter(this.findMatchingCards);
+            playableCards = this.currentHand.filter(this.findMatchingCards.bind(this));
             // If no matching cards, return -1
             if (playableCards.length == 0) {
                 return -1;
@@ -100,5 +100,10 @@ export class playerObject {
         for (var x = 0; x <= (this.currentHand.length - 1); x++) {
             this.cardListHTML.innerHTML += '<li class="card" data-v="' + this.currentHand[x].value + '" data-s="' + this.currentHand[x].suit + '"><img class="' + this.cardFacing + '" style="background-position: -' + this.currentHand[x].l * this.gameMgr.getCardDimensions().w + 'px -' + this.currentHand[x].t * this.gameMgr.getCardDimensions().h + 'px "/></li>';
         }
+    }
+
+    // Get current hand
+    getCurrentHand() {
+        return this.currentHand;
     }
 }

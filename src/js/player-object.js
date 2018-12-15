@@ -6,8 +6,12 @@ export class playerObject {
         this.cardFacing = cardFacing;	// Card Facing face_up or face_down
         this.isHuman = isHuman;			// If active player
         this.currentHand = [];			// Array to hold currently held cards
-        this.cardList = this.element.firstElementChild.firstElementChild;	// HTML List of held Card
+        this.cardListHTML = this.element.firstElementChild.firstElementChild;	// HTML List of held Card
         this.gameMgr = null;         // Reference to the Game Manager
+    }
+
+    getCardListHTML() {
+        return this.cardListHTML;
     }
 
     // Place card into current Hand
@@ -78,5 +82,15 @@ export class playerObject {
     registerGameManager(gameMgr) {
         this.gameMgr = gameMgr;
         this.gameMgr.outputDetail("Manager Registered");
+    }
+
+    // Check if human
+    checkIsHuman() {
+        return this.isHuman;
+    }
+
+    // Get Name
+    getName() {
+        return this.name;
     }
 }

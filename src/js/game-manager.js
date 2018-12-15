@@ -1,6 +1,6 @@
 export class GameManager {
 
-    constructor(mode = "DEFAULT") {
+    constructor(mode = "DEFAULT", cards, AI_Interval) {
         this.mode = mode;
         this.players = [];
         // HTML elements
@@ -9,40 +9,102 @@ export class GameManager {
         this.current_player_data_HTML = null;
         this.current_action_data_HTML = null;
         // Ai interval
-        this.AI_Interval = 0;
+        this.AI_Interval = AI_Interval;
+        // Card data
+        this.deck = cards;
+        this.discard_deck = [];
+        // Game Data
+        this.startingHandSize = 7;
+        // State Data
+        this.state = {
+            current_player: null,
+            game_state: 'INIT',
+        }
     };
 
     // Initialise the game
-    init(AI_Interval) {
+    init() {
         // Set HTML
         this.deckElement_HTML = document.getElementById("deck");
         this.discard_deckElement_HTML = document.getElementById("second_deck");
         this.current_player_data_HTML = document.getElementById("current_player_data");
         this.current_action_data_HTML = document.getElementById("current_action_data");
-
-        // set AI interval
-        this.AI_Interval = AI_Interval;
-
     };
 
+
     // Utility
+
+
+    // Output detail if in DEBUG mode
     outputDetail(str) {
         if (this.mode == "DEBUG") { console.log(JSON.stringify(str)); }
     };
 
+
+    // Initialisation methods
+
+
     // Register Players
     registerPlayers(ary) {
         this.players = ary;
-        this.players.forEach(function (p) {
-            p.registerGameManager(this);
-        }.bind(this));
+        this.state.current_player = this.getHumanPlayer();
+    };
+    // Prepare the discard deck for play
+    prepareDiscardDeck() {
+        // Take the top card of the deck and place it on the discard deck
+        this.discard_deck.unshift(this.deck.shift());
     };
 
-    setDiscardDeck() { };
 
-    getCurrentPlayer() { };
+    // Getters
 
-    getDeckHTML() { };
 
+    // Get Deck Array
+    getDeck() {
+        return this.deck;
+    }
+    // Get Discard Deck Array
+    getDiscardDeck() {
+        return this.discard_deck;
+    }
+    // Get HTML Deck
+    getDeckHTML() {
+        return this.deckElement_HTML;
+    };
+    // Get Card By Index from Array
+    getCardByIndex(i) {
+        return this.deck[i];
+    }
+    // Get Player Array
+    getPlayers() {
+        return this.players;
+    }
+    // Get Player By Index
+    getPlayerByIndex(i) {
+        return this.players[i];
+    }
+    // Get Current active player
+    getCurrentPlayer() {
+        return this.state.current_player;
+    };
+    // Get Human Player
+    getHumanPlayer() {
+        return this.players.filter(function (p) {
+            return p.checkIsHuman() ? true : false;
+        })[0];
+    }
+    // Get Starting Hand Size
+    getStartingHandSize() {
+        return this.startingHandSize;
+    }
+
+
+    // Setters
+
+
+    // Set Card By Index in the Deck Array
+    setCardByIndex(i, c) {
+        this.deck[i] = c;
+    }
 
 }

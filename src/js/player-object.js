@@ -21,7 +21,7 @@ export class playerObject {
 
     // Play a card
     playCard(c) {
-        return this.currentHand.splice(c, 1);
+        return this.currentHand.splice(c, 1)[0];
     }
 
     findCardByValue(c) {

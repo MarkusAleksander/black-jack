@@ -1,8 +1,10 @@
 import { cards } from "./card-array.js";
 import { GameManager } from "./game-manager.js";
+import { ViewManager } from "./view-manager.js";
 import { playerObject } from "./player-object.js";
 
 const gameMgr = new GameManager("DEBUG", cards, 50);
+const viewMgr = new ViewManager();
 
 (function gameInitialisation() {
 
@@ -10,6 +12,9 @@ const gameMgr = new GameManager("DEBUG", cards, 50);
 
     // Initialise the Game
     gameMgr.init();
+
+    // Register GameManager View Updater to View Manager
+    viewMgr.registerView(gameMgr.updateView.bind(gameMgr));
 
     // Create the players
     createPlayers();
@@ -32,6 +37,7 @@ function createPlayers() {
     ]);
     gameMgr.getPlayers().forEach(function (p) {
         p.registerGameManager(gameMgr);
+        viewMgr.registerView(p.updateView.bind(p));
     });
 }
 
@@ -48,7 +54,7 @@ function prepareGame() {
     gameMgr.prepareDiscardDeck();
 
     // Update  view
-    //deckViewUpdate();
+    viewUpdate();
 
     // Register Event Listeners
     gameMgr.getHumanPlayer().getCardListHTML().addEventListener("mousedown", EVSelectCard);
@@ -114,10 +120,15 @@ function playRound() {
     }
 };
 // End the Round
-function endRound() { };
+function endRound() {
+    // View Update
+    viewUpdate();
+};
 
 // Update the view
-function deckViewUpdate() { };
+function viewUpdate() {
+    viewMgr.update();
+};
 
 
 // Game Action Functions
@@ -128,6 +139,7 @@ function playCardFromHand(index) {
     // gameMgr.setCurrentPlayedAction(Store.getFlag(1));
     // Player is playing a card - place chosen card onto the Store.discardDeck
     gameMgr.getDiscardDeck().unshift(gameMgr.getCurrentPlayer().playCard(index));
+    gameMgr.updateDiscardDeck();
     // Update player view
     //gameMgr.getCurrentPlayer().viewUpdate();
     //gameMgr.updateStore();

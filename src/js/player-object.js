@@ -93,4 +93,12 @@ export class playerObject {
     getName() {
         return this.name;
     }
+
+    // Update View
+    updateView() {
+        this.cardListHTML.innerHTML = '';
+        for (var x = 0; x <= (this.currentHand.length - 1); x++) {
+            this.cardListHTML.innerHTML += '<li class="card" data-v="' + this.currentHand[x].value + '" data-s="' + this.currentHand[x].suit + '"><img class="' + this.cardFacing + '" style="background-position: -' + this.currentHand[x].l * this.gameMgr.getCardDimensions().w + 'px -' + this.currentHand[x].t * this.gameMgr.getCardDimensions().h + 'px "/></li>';
+        }
+    }
 }

@@ -73,6 +73,9 @@ body {
     width:59px;
     height:90px;
 }
+.card>img {
+    display:block;
+}
 .card>.face_up {
     width:100%;
     height:100%;

@@ -13,11 +13,14 @@ export class GameManager {
         // Card data
         this.deck = cards;
         this.discard_deck = [];
+        this.card_w = 59;
+        this.card_h = 90;
         // Game Data
         this.startingHandSize = 7;
         // State Data
         this.state = {
             current_player: null,
+            current_top_card: null,
             game_state: 'INIT',
         }
     };
@@ -53,6 +56,7 @@ export class GameManager {
     prepareDiscardDeck() {
         // Take the top card of the deck and place it on the discard deck
         this.discard_deck.unshift(this.deck.shift());
+        this.updateDiscardDeck();
     };
 
 
@@ -74,6 +78,15 @@ export class GameManager {
     // Get Card By Index from Array
     getCardByIndex(i) {
         return this.deck[i];
+    }
+    getCurrentTopCard() {
+        return this.state.current_top_card;
+    }
+    getCardDimensions() {
+        return {
+            w: this.card_w,
+            h: this.card_h
+        }
     }
     // Get Player Array
     getPlayers() {
@@ -105,6 +118,16 @@ export class GameManager {
     // Set Card By Index in the Deck Array
     setCardByIndex(i, c) {
         this.deck[i] = c;
+    }
+
+
+    // Update
+
+    updateView() {
+        this.discard_deckElement_HTML.innerHTML = `<img class="face_up" data-info="${this.getCurrentTopCard().value}, ${this.getCurrentTopCard().suit}" style="background-position: -${this.getCurrentTopCard().l * this.getCardDimensions().w}px -${this.getCurrentTopCard().t * this.getCardDimensions().h}px "/>`;
+    }
+    updateDiscardDeck() {
+        this.state.current_top_card = this.discard_deck[0];
     }
 
 }

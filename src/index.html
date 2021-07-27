@@ -1,52 +1,85 @@
 <!DOCTYPE html>
 <html lang="en-GB">
+
 <head>
     <!-- Meta data -->
     <meta charset="utf-8" />
     <title>JS Cards</title>
-    <meta name="description" content="" />
-    <meta name="keywords" content="" />
+    <meta
+        name="description"
+        content=""
+    />
+    <meta
+        name="keywords"
+        content=""
+    />
     <!-- CSS -->
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link
+        rel="stylesheet"
+        type="text/css"
+        href="css/style.css"
+    />
 </head>
+
 <body>
     <section id="page-container">
         <section id="game_area">
             <section id="game_board">
                 <!-- PLAYERS -->
-                <section class="player" id="player_one">
+                <section
+                    class="player"
+                    id="Player_0"
+                >
                     <div class="hand">
                         <!-- DISPLAY CARDS -->
                         <ul class="card_list">
                         </ul>
                     </div>
                 </section>
-                <section class="player" id="player_two">
+                <section
+                    class="player"
+                    id="Player_1"
+                >
                     <div class="hand">
                         <ul class="card_list">
                         </ul>
                     </div>
                 </section>
-                <section class="player" id="player_three">
+                <section
+                    class="player"
+                    id="Player_2"
+                >
                     <div class="hand">
                         <ul class="card_list">
                         </ul>
                     </div>
                 </section>
-                <section class="player" id="player_four">
+                <section
+                    class="player"
+                    id="Player_3"
+                >
                     <div class="hand">
                         <ul class="card_list">
                         </ul>
                     </div>
                 </section>
                 <section id="deck_board">
-                    <div id="deck" class="card"><img class="face_down" /></div><!-- Hidden -->
-                    <div id="second_deck" class="card"><img class="face_up" /></div><!-- Face up -->
+                    <div
+                        id="pickup_deck"
+                        class="card"
+                    ><img class="face_down" /></div><!-- Hidden -->
+                    <div
+                        id="discard_deck"
+                        class="card"
+                    ><img class="face_up" /></div><!-- Face up -->
                 </section>
             </section><!-- #game_board -->
         </section><!-- #game_area -->
     </section><!-- #page-container -->
-    <script src="js/index.js" type="module"></script>
+    <script
+        src="js/index.js"
+        type="module"
+    ></script>
 </body>
 
 </html>

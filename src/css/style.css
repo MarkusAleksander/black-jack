@@ -113,18 +113,18 @@ body {
     background-image:url("../img/felt.png");
     background-repeat:repeat;
 }
-#deck {
+#pickup_deck{
     position:absolute;
     top:20%;
     left:50%;
     width:59px;
     height:90px;
 }
-#deck:hover {
+#pickup_deck:hover {
     cursor:pointer;
     box-shadow:0 0 5px 5px rgba(30, 190, 250, .6);
 }
-#second_deck {
+#discard_deck {
     position:absolute;
     top:20%;
     left:10%;
@@ -144,23 +144,23 @@ body {
     border:5px ridge #914108;
     background:linear-gradient(to bottom, #a3530d, #994908);
 }
-#player_one {
+#Player_0 {
     bottom:0;
 }
-#player_one .card:hover {
+#Player_0 .card:hover {
     cursor:pointer;
     box-shadow:0 0 5px 5px rgba(30, 190, 250, .6);
 }
-#player_two {
+#Player_1 {
     bottom:41%;
     left:-41%;
     transform:rotate(90deg);
 }
-#player_three {
+#Player_2 {
     top:0;
     transform:rotate(180deg);
 }
-#player_four {
+#Player_3 {
     bottom:41%;
     left:41%;
     transform:rotate(-90deg);

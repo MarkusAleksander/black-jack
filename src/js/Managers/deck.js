@@ -1,3 +1,4 @@
+import outputDetail from "../Utilities/outputDetail";
 import { cards } from "./../Cards/cards";
 import loop from "./../Utilities/loop";
 
@@ -22,14 +23,14 @@ export const DeckManager = () => {
         shufflePickUpDeck();
 
         // * Move top card from Pickup to Discard Deck
-        insertCardAtIndexToDiscardDeck(0, getCardByIndexFromPickupDeck(0));
+        insertCardAtIndexToDiscardDeck(0, removeCardByIndexFromPickupDeck(0));
     }
 
     // * Shuffle the deck
     const shufflePickUpDeck = () => {
         shuffle(
             PICKUP_DECK,
-            getCardByIndexFromPickupDeck,
+            removeCardByIndexFromPickupDeck,
             insertCardAtIndexToPickupDeck
         );
     }
@@ -37,7 +38,7 @@ export const DeckManager = () => {
     const shuffleDiscardDeck = () => {
         shuffle(
             DISCARD_DECK,
-            getCardByIndexFromDiscardDeck,
+            removeCardByIndexFromDiscardDeck,
             insertCardAtIndexToDiscardDeck
         );
     }
@@ -61,7 +62,7 @@ export const DeckManager = () => {
     // * Deal the cards to the players
     const dealCards = (players) => {
         loop(players, (player, p) => {
-            let cards = getFirstNCardsFromPickupDeck(state.starting_hand_size);
+            let cards = removeFirstNCardsFromPickupDeck(state.starting_hand_size);
 
             player.addCards(cards);
         });
@@ -71,23 +72,39 @@ export const DeckManager = () => {
         return PICKUP_DECK;
     }
 
+    const getPickupDeckTopCard = () => {
+        return PICKUP_DECK[0];
+    }
+
+    const getPickupDeckSize = () => {
+        return PICKUP_DECK.length;
+    }
+
     const getDiscardDeck = () => {
         return DISCARD_DECK;
     }
 
-    const getCardByIndexFromPickupDeck = (idx) => {
+    const getDiscardDeckTopCard = () => {
+        return DISCARD_DECK[0];
+    }
+
+    const getDiscardDeckSize = () => {
+        return DISCARD_DECK.length;
+    }
+
+    const removeCardByIndexFromPickupDeck = (idx) => {
         return PICKUP_DECK.splice(idx, 1)[0];
     }
 
-    const getCardByIndexFromDiscardDeck = (idx) => {
+    const removeCardByIndexFromDiscardDeck = (idx) => {
         return DISCARD_DECK.splice(idx, 1)[0];
     }
 
-    const getFirstNCardsFromPickupDeck = (num_cards) => {
+    const removeFirstNCardsFromPickupDeck = (num_cards) => {
         return PICKUP_DECK.splice(0, num_cards);
     }
 
-    const getFirstNCardsFromDiscardDeck = (num_cards) => {
+    const removeFirstNCardsFromDiscardDeck = (num_cards) => {
         return DISCARD_DECK.splice(0, num_cards);
     }
 
@@ -100,11 +117,36 @@ export const DeckManager = () => {
     }
 
     const insertCardAtIndexToPickupDeck = (idx, card) => {
-        return PICKUP_DECK.splice(idx, 0, card);
+        PICKUP_DECK.splice(idx, 0, card);
     }
 
     const insertCardAtIndexToDiscardDeck = (idx, card) => {
-        return DISCARD_DECK.splice(idx, 0, card);
+        DISCARD_DECK.splice(idx, 0, card);
+    }
+
+    const insertToTopOfPickupDeck = (card) => {
+        PICKUP_DECK.unshift(card);
+    }
+
+    const insertToTopOfDiscardDeck = (card) => {
+        DISCARD_DECK.unshift(card);
+    }
+
+    const swapDecks = () => {
+        outputDetail(`Refilling Pickup Deck from Discard Deck`);
+
+        // TODO - What if no cards are left?
+
+        // * Move all discarded cards to pickup deck, leaving last discarded card in discard pile
+        const top_discard_card = removeCardAtIndexFromDiscardDeck(0);
+
+        // * loop through remaining discard deck and add to pickup deck
+        for (let idx = 0; idx < getDiscardDeckSize(); idx++) {
+            insertToTopOfPickupDeck(removeCardByIndexFromDiscardDeck(idx));
+        }
+
+        // * add initial discarded card back to discard pile
+        insertToTopOfDiscardDeck(top_discard_card);
     }
 
     return {
@@ -112,19 +154,27 @@ export const DeckManager = () => {
         prepareDeck,
 
         getPickupDeck,
-        getCardByIndexFromPickupDeck,
-        getFirstNCardsFromPickupDeck,
+        getPickupDeckSize,
+        getPickupDeckTopCard,
+        removeCardByIndexFromPickupDeck,
+        removeFirstNCardsFromPickupDeck,
         removeCardAtIndexFromPickupDeck,
         insertCardAtIndexToPickupDeck,
+        insertToTopOfPickupDeck,
 
         getDiscardDeck,
-        getCardByIndexFromDiscardDeck,
-        getFirstNCardsFromDiscardDeck,
+        getDiscardDeckSize,
+        getDiscardDeckTopCard,
+        removeCardByIndexFromDiscardDeck,
+        removeFirstNCardsFromDiscardDeck,
         removeCardAtIndexFromDiscardDeck,
         insertCardAtIndexToDiscardDeck,
+        insertToTopOfDiscardDeck,
 
         shufflePickUpDeck,
         shuffleDiscardDeck,
+
+        swapDecks,
 
         dealCards,
     }

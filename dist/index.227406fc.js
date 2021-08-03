@@ -383,40 +383,52 @@ function hmrAcceptRun(bundle /*: ParcelRequire */ , id /*: string */ ) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 var _loop = require("./Utilities/loop");
 var _loopDefault = parcelHelpers.interopDefault(_loop);
+var _outputDetail = require("./Utilities/outputDetail");
+var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
 var _managers = require("./Managers/managers");
+var _player = require("./Player/player");
+// * create game managers
 const Game = _managers.GameManager();
 const Deck = _managers.DeckManager();
 const Players = _managers.PlayerManager();
 const View = _managers.ViewManager();
+// * add window references for debugging
 window.Game = Game;
 window.Deck = Deck;
 window.Players = Players;
 window.View = View;
+// * initialise the game world
 Game.init({
 });
+// * initialise the players
 Players.init({
     num_players: 4
 });
 Players.createPlayers();
+// * initialise the view
 View.init({
     pickup_deck_el: document.getElementById("pickup_deck"),
     discard_deck_el: document.getElementById("discard_deck")
 });
+// * name the players
 _loopDefault.default(Players.getPlayerList(), (player)=>{
     const player_name = player.getPlayerName();
     View.addPlayerHTML(player_name, document.getElementById(player_name));
 });
+// * initliase the deck
 Deck.init({
 });
+// * prepare the deck
 Deck.prepareDeck();
+// * deal cards to each player
 Deck.dealCards(Players.getPlayerList());
-// * Define some drawing functions
+// * Define discard drawing function
 const drawDiscardDeck = ()=>{
     let card = Deck.getDiscardDeck()[0];
     let card_HTML = View.createCardHTML(card, true);
     View.getDiscardDeck().innerHTML = card_HTML;
 };
-drawDiscardDeck();
+// * Define drawing player deck functions
 const drawPlayerDecks = ()=>{
     _loopDefault.default(Players.getPlayerList(), (player)=>{
         const deck = player.getCurrentCards();
@@ -429,9 +441,115 @@ const drawPlayerDecks = ()=>{
         });
     });
 };
-drawPlayerDecks();
+// * update view 
+const updateView = ()=>{
+    // * Draw player decks
+    drawPlayerDecks();
+    // * Draw discard decks
+    drawDiscardDeck();
+};
+// * Do initial draw
+updateView();
+// * define turn actions
+// * Pickup a card from the deck
+const pickupCardFromDeck = ()=>{
+    _outputDetailDefault.default(`[pickupCardFromDeck] Picking up card`);
+    // * get current player attempting pickup
+    let current_player = Players.getCurrentActivePlayer();
+    // * get pickup deck
+    let top_card = Deck.removeCardByIndexFromPickupDeck(0);
+    // * add picked up card to player deck
+    current_player.addCard(top_card);
+    _outputDetailDefault.default(`[pickupCardFromDeck] Picked up card: ${top_card.name}`);
+    // * if deck is now empty, then swap decks
+    if (Deck.getPickupDeckSize() <= 0) Deck.swapDecks();
+    // * redraw the view
+    updateView();
+    // * end the turn
+    endTurn();
+};
+const checkLegalPlayableMove = ({ value , suit  })=>{
+    // * get current card attempting to play upon
+    const current_top_card = Deck.getDiscardDeckTopCard();
+    // * playable card must be of the same suit or of the same value
+    return value == current_top_card.value || suit == current_top_card.suit;
+};
+const playCard = ({ value , suit  })=>{
+    _outputDetailDefault.default(`[playCard] Attempting to play`);
+    // * get card from player hand
+    let current_player = Players.getCurrentActivePlayer();
+    // * RULES HERE
+    if (!checkLegalPlayableMove({
+        value,
+        suit
+    })) {
+        _outputDetailDefault.default(`[playCard] Card not playable`);
+        return;
+    }
+    const card = current_player.removeCard({
+        value,
+        suit
+    });
+    _outputDetailDefault.default(`[playCard] Playing card: ${card.name}`);
+    Deck.insertToTopOfDiscardDeck(card);
+    updateView();
+    // * end the turn
+    endTurn();
+};
+// * Define Human Player Interaction
+const onHumanPlayerCardSelect = (event)=>{
+    _outputDetailDefault.default(`[onHumanPlayerCardSelect]`);
+    if (!Players.getCurrentActivePlayer().getIsHuman()) {
+        _outputDetailDefault.default(`[onHumanPlayerCardSelect] Human player not currently active`);
+        return;
+    }
+    // * check valid click target
+    const selection = event.target.parentNode || event.srcElement.parentNode;
+    // * make sure a card was clicked
+    if (selection.className == "card") {
+        // * get card reference
+        const value = selection.getAttribute('data-v');
+        const suit = selection.getAttribute('data-s');
+        playCard({
+            value,
+            suit
+        });
+    }
+};
+const onHumanPlayerCardPickup = (event)=>{
+    pickupCardFromDeck();
+};
+// * Assign interactions to view
+document.querySelector("#Player_0 .card_list").addEventListener("mousedown", onHumanPlayerCardSelect);
+document.querySelector("#pickup_deck").addEventListener("mousedown", onHumanPlayerCardPickup);
+// * Define AI Interactions
+const onAIPlayerCardSelect = ()=>{
+    // * AI Player select card from hand
+    _outputDetailDefault.default(`[onAIPlayerCardSelect]`);
+};
+const onAIPlayerCardPickup = ()=>{
+    // * AI Player pickup card from deck
+    _outputDetailDefault.default(`[onAIPlayerCardPickup]`);
+    pickupCardFromDeck();
+};
+const chooseAIPlayerActionChoice = ()=>{
+    // * Define AI choice here
+    onAIPlayerCardPickup();
+};
+// * Define turn functions
+const onEndTurn = ()=>{
+    // * update current players
+    Players.setNextActivePlayer();
+    // * if AI
+    if (!Players.getCurrentActivePlayer().getIsHuman()) chooseAIPlayerActionChoice();
+};
+const endTurn = ()=>{
+    _outputDetailDefault.default(`Ending turn...`);
+    // * resolve anything before confirm turn is ended
+    onEndTurn();
+};
 
-},{"./Managers/managers":"5IueX","./Utilities/loop":"cwOcG","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"5IueX":[function(require,module,exports) {
+},{"./Managers/managers":"5IueX","./Utilities/loop":"cwOcG","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./Utilities/outputDetail":"cC0a2","./Player/player":"92V2m"}],"5IueX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 // * Export managers through here
@@ -530,6 +648,8 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "DeckManager", ()=>DeckManager
 );
+var _outputDetail = require("../Utilities/outputDetail");
+var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
 var _cards = require("./../Cards/cards");
 var _loop = require("./../Utilities/loop");
 var _loopDefault = parcelHelpers.interopDefault(_loop);
@@ -547,16 +667,14 @@ const DeckManager = ()=>{
         // * Shuffle Pickup deck
         shufflePickUpDeck();
         // * Move top card from Pickup to Discard Deck
-        insertCardAtIndexToDiscardDeck(0, getCardByIndexFromPickupDeck(0));
+        insertCardAtIndexToDiscardDeck(0, removeCardByIndexFromPickupDeck(0));
     };
     // * Shuffle the deck
     const shufflePickUpDeck = ()=>{
-        console.log(PICKUP_DECK);
-        shuffle(PICKUP_DECK, getCardByIndexFromPickupDeck, insertCardAtIndexToPickupDeck);
-        console.log(PICKUP_DECK);
+        shuffle(PICKUP_DECK, removeCardByIndexFromPickupDeck, insertCardAtIndexToPickupDeck);
     };
     const shuffleDiscardDeck = ()=>{
-        shuffle(DISCARD_DECK, getCardByIndexFromDiscardDeck, insertCardAtIndexToDiscardDeck);
+        shuffle(DISCARD_DECK, removeCardByIndexFromDiscardDeck, insertCardAtIndexToDiscardDeck);
     };
     const shuffle = (deck, get, insert)=>{
         let r, card;
@@ -577,26 +695,38 @@ const DeckManager = ()=>{
     // * Deal the cards to the players
     const dealCards = (players)=>{
         _loopDefault.default(players, (player, p)=>{
-            let cards = getFirstNCardsFromPickupDeck(state.starting_hand_size);
+            let cards = removeFirstNCardsFromPickupDeck(state.starting_hand_size);
             player.addCards(cards);
         });
     };
     const getPickupDeck = ()=>{
         return PICKUP_DECK;
     };
+    const getPickupDeckTopCard = ()=>{
+        return PICKUP_DECK[0];
+    };
+    const getPickupDeckSize = ()=>{
+        return PICKUP_DECK.length;
+    };
     const getDiscardDeck = ()=>{
         return DISCARD_DECK;
     };
-    const getCardByIndexFromPickupDeck = (idx)=>{
+    const getDiscardDeckTopCard = ()=>{
+        return DISCARD_DECK[0];
+    };
+    const getDiscardDeckSize = ()=>{
+        return DISCARD_DECK.length;
+    };
+    const removeCardByIndexFromPickupDeck = (idx)=>{
         return PICKUP_DECK.splice(idx, 1)[0];
     };
-    const getCardByIndexFromDiscardDeck = (idx)=>{
+    const removeCardByIndexFromDiscardDeck = (idx)=>{
         return DISCARD_DECK.splice(idx, 1)[0];
     };
-    const getFirstNCardsFromPickupDeck = (num_cards)=>{
+    const removeFirstNCardsFromPickupDeck = (num_cards)=>{
         return PICKUP_DECK.splice(0, num_cards);
     };
-    const getFirstNCardsFromDiscardDeck = (num_cards)=>{
+    const removeFirstNCardsFromDiscardDeck = (num_cards)=>{
         return DISCARD_DECK.splice(0, num_cards);
     };
     const removeCardAtIndexFromPickupDeck = (idx)=>{
@@ -606,31 +736,54 @@ const DeckManager = ()=>{
         return DISCARD_DECK.splice(idx, 1)[0];
     };
     const insertCardAtIndexToPickupDeck = (idx, card)=>{
-        return PICKUP_DECK.splice(idx, 0, card);
+        PICKUP_DECK.splice(idx, 0, card);
     };
     const insertCardAtIndexToDiscardDeck = (idx, card)=>{
-        return DISCARD_DECK.splice(idx, 0, card);
+        DISCARD_DECK.splice(idx, 0, card);
+    };
+    const insertToTopOfPickupDeck = (card)=>{
+        PICKUP_DECK.unshift(card);
+    };
+    const insertToTopOfDiscardDeck = (card)=>{
+        DISCARD_DECK.unshift(card);
+    };
+    const swapDecks = ()=>{
+        _outputDetailDefault.default(`Refilling Pickup Deck from Discard Deck`);
+        // TODO - What if no cards are left?
+        // * Move all discarded cards to pickup deck, leaving last discarded card in discard pile
+        const top_discard_card = removeCardAtIndexFromDiscardDeck(0);
+        // * loop through remaining discard deck and add to pickup deck
+        for(let idx = 0; idx < getDiscardDeckSize(); idx++)insertToTopOfPickupDeck(removeCardByIndexFromDiscardDeck(idx));
+        // * add initial discarded card back to discard pile
+        insertToTopOfDiscardDeck(top_discard_card);
     };
     return {
         init,
         prepareDeck,
         getPickupDeck,
-        getCardByIndexFromPickupDeck,
-        getFirstNCardsFromPickupDeck,
+        getPickupDeckSize,
+        getPickupDeckTopCard,
+        removeCardByIndexFromPickupDeck,
+        removeFirstNCardsFromPickupDeck,
         removeCardAtIndexFromPickupDeck,
         insertCardAtIndexToPickupDeck,
+        insertToTopOfPickupDeck,
         getDiscardDeck,
-        getCardByIndexFromDiscardDeck,
-        getFirstNCardsFromDiscardDeck,
+        getDiscardDeckSize,
+        getDiscardDeckTopCard,
+        removeCardByIndexFromDiscardDeck,
+        removeFirstNCardsFromDiscardDeck,
         removeCardAtIndexFromDiscardDeck,
         insertCardAtIndexToDiscardDeck,
+        insertToTopOfDiscardDeck,
         shufflePickUpDeck,
         shuffleDiscardDeck,
+        swapDecks,
         dealCards
     };
 };
 
-},{"./../Cards/cards":"7d7DK","./../Utilities/loop":"cwOcG","./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"7d7DK":[function(require,module,exports) {
+},{"./../Cards/cards":"7d7DK","./../Utilities/loop":"cwOcG","./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/outputDetail":"cC0a2"}],"7d7DK":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "cards", ()=>cards
@@ -1034,6 +1187,12 @@ function loop(array, cb, dir = 1, scope) {
 }
 exports.default = loop;
 
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"cC0a2":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+exports.default = outputDetail = (detail)=>console.log(detail)
+;
+
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e3V8h":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -1041,6 +1200,8 @@ parcelHelpers.export(exports, "PlayerManager", ()=>PlayerManager
 );
 var _updateObject = require("./../Utilities/updateObject");
 var _player = require("../Player/player");
+var _outputDetail = require("../Utilities/outputDetail");
+var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
 const PlayerManager = ()=>{
     const state = {
         num_players: 4,
@@ -1075,17 +1236,27 @@ const PlayerManager = ()=>{
         let next_player = state.next_player_idx + 1;
         if (next_player >= state.num_players) next_player = 0;
         state.next_player_idx = next_player;
-        player_list[state.previous_player_idx].setActive(false);
-        player_list[state.current_player_idx].setActive(true);
-        player_list[state.next_player_idx].setActive(false);
+        state.player_list[state.previous_player_idx].setActive(false);
+        state.player_list[state.current_player_idx].setActive(true);
+        state.player_list[state.next_player_idx].setActive(false);
+        _outputDetailDefault.default(`Current active player is now: ${state.player_list[state.current_player_idx].getPlayerName()}`);
     };
     const getCurrentActivePlayer = ()=>{
+        return state.player_list[state.current_player_idx];
+    };
+    const getCurrentActivePlayerIdx = ()=>{
         return state.current_player_idx;
     };
     const getCurrentNextPlayer = ()=>{
+        return state.player_list[state.next_player_idx];
+    };
+    const getCurrentNextPlayerIdx = ()=>{
         return state.next_player_idx;
     };
     const getCurrentPreviousPlayer = ()=>{
+        return state.player_list[state.previous_player_idx];
+    };
+    const getCurrentPreviousPlayerIdx = ()=>{
         return state.previous_player_idx;
     };
     const getPlayerList = ()=>{
@@ -1096,13 +1267,16 @@ const PlayerManager = ()=>{
         createPlayers,
         setNextActivePlayer,
         getCurrentActivePlayer,
+        getCurrentActivePlayerIdx,
         getCurrentNextPlayer,
+        getCurrentNextPlayerIdx,
         getCurrentPreviousPlayer,
+        getCurrentPreviousPlayerIdx,
         getPlayerList
     };
 };
 
-},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"92V2m":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/outputDetail":"cC0a2"}],"92V2m":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Player", ()=>Player
@@ -1113,7 +1287,7 @@ const Player = ()=>{
         is_active: false,
         name: null,
         deck: [],
-        isHuman: false
+        is_human: false
     };
     const init = (config)=>{
         _updateObject.updateObject(state, config);
@@ -1124,7 +1298,7 @@ const Player = ()=>{
     const addCards = (cards)=>{
         state.deck = state.deck.concat(cards);
     };
-    const removeCard = (idx)=>{
+    const removeCardAtIndex = (idx)=>{
         state.deck.splice(idx, 1)[0];
     };
     const removeCards = (idx, num_cards)=>{
@@ -1136,18 +1310,30 @@ const Player = ()=>{
     const getPlayerName = ()=>{
         return state.name;
     };
+    const getIsHuman = ()=>{
+        return state.is_human;
+    };
     const getCurrentCards = ()=>{
         return state.deck;
+    };
+    const removeCard = ({ value , suit  })=>{
+        let cardIdx = state.deck.findIndex((card)=>{
+            return card.value == value && card.suit == suit;
+        });
+        if (cardIdx < 0) console.error("Selected player card not found");
+        return state.deck.splice(cardIdx, 1)[0];
     };
     return {
         init,
         addCard,
         addCards,
         removeCard,
+        removeCardAtIndex,
         removeCards,
         setActive,
         getPlayerName,
-        getCurrentCards
+        getCurrentCards,
+        getIsHuman
     };
 };
 

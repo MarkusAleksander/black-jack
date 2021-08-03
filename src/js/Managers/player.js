@@ -1,5 +1,6 @@
 import { updateObject } from "./../Utilities/updateObject";
 import { Player } from "../Player/player";
+import outputDetail from "../Utilities/outputDetail";
 
 export const PlayerManager = () => {
 
@@ -44,21 +45,34 @@ export const PlayerManager = () => {
 
         state.next_player_idx = next_player;
 
-        player_list[state.previous_player_idx].setActive(false);
-        player_list[state.current_player_idx].setActive(true);
-        player_list[state.next_player_idx].setActive(false);
+        state.player_list[state.previous_player_idx].setActive(false);
+        state.player_list[state.current_player_idx].setActive(true);
+        state.player_list[state.next_player_idx].setActive(false);
 
+        outputDetail(`Current active player is now: ${state.player_list[state.current_player_idx].getPlayerName()}`);
     }
 
     const getCurrentActivePlayer = () => {
+        return state.player_list[state.current_player_idx];
+    }
+
+    const getCurrentActivePlayerIdx = () => {
         return state.current_player_idx;
     }
 
     const getCurrentNextPlayer = () => {
+        return state.player_list[state.next_player_idx];
+    }
+
+    const getCurrentNextPlayerIdx = () => {
         return state.next_player_idx;
     }
 
     const getCurrentPreviousPlayer = () => {
+        return state.player_list[state.previous_player_idx];
+    }
+
+    const getCurrentPreviousPlayerIdx = () => {
         return state.previous_player_idx;
     }
 
@@ -71,8 +85,11 @@ export const PlayerManager = () => {
         createPlayers,
         setNextActivePlayer,
         getCurrentActivePlayer,
+        getCurrentActivePlayerIdx,
         getCurrentNextPlayer,
+        getCurrentNextPlayerIdx,
         getCurrentPreviousPlayer,
+        getCurrentPreviousPlayerIdx,
         getPlayerList,
     }
 

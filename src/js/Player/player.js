@@ -5,7 +5,7 @@ export const Player = () => {
         is_active: false,
         name: null,
         deck: [],
-        isHuman: false,
+        is_human: false,
     }
 
     const init = (config) => {
@@ -20,7 +20,7 @@ export const Player = () => {
         state.deck = state.deck.concat(cards);
     }
 
-    const removeCard = (idx) => {
+    const removeCardAtIndex = (idx) => {
         state.deck.splice(idx, 1)[0];
     }
 
@@ -36,8 +36,24 @@ export const Player = () => {
         return state.name;
     }
 
+    const getIsHuman = () => {
+        return state.is_human;
+    }
+
     const getCurrentCards = () => {
         return state.deck;
+    }
+
+    const removeCard = ({ value, suit }) => {
+        let cardIdx = state.deck.findIndex((card) => {
+            return card.value == value && card.suit == suit;
+        });
+
+        if (cardIdx < 0) {
+            console.error("Selected player card not found");
+        }
+
+        return state.deck.splice(cardIdx, 1)[0];
     }
 
     return {
@@ -45,9 +61,11 @@ export const Player = () => {
         addCard,
         addCards,
         removeCard,
+        removeCardAtIndex,
         removeCards,
         setActive,
         getPlayerName,
         getCurrentCards,
+        getIsHuman,
     }
 }

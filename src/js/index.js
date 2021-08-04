@@ -1,12 +1,16 @@
 import loop from "./Utilities/loop";
 import outputDetail from "./Utilities/outputDetail";
 
+import * as PLAYER_STATES from "./Player/player_states";
+import * as POWERS from "./Cards/powers";
+
 import {
     GameManager,
     DeckManager,
     PlayerManager,
     ViewManager,
 } from "./Managers/managers";
+
 import { Player } from "./Player/player";
 
 // * create game managers
@@ -44,7 +48,7 @@ loop(Players.getPlayerList(), (player) => {
     View.addPlayerHTML(player_name, document.getElementById(player_name));
 });
 
-// * initliase the deck
+// * initialise the deck
 Deck.init({});
 
 // * prepare the deck
@@ -111,11 +115,13 @@ const pickupCardFromDeck = () => {
         Deck.swapDecks();
     }
 
+    Players.getCurrentActivePlayer().updateActionState(PLAYER_STATES.ACTION_DID_PICKUP);
+
     // * redraw the view
     updateView();
 
     // * end the turn
-    endTurn();
+    // endTurn();
 }
 
 const checkLegalPlayableMove = ({ value, suit }) => {
@@ -147,10 +153,12 @@ const playCard = ({ value, suit }) => {
 
     Deck.insertToTopOfDiscardDeck(card);
 
+    Players.getCurrentActivePlayer().updateActionState(PLAYER_STATES.ACTION_DID_PUTDOWN);
+
     updateView();
 
     // * end the turn
-    endTurn();
+    // endTurn();
 }
 
 // * Define Human Player Interaction
@@ -171,12 +179,14 @@ const onHumanPlayerCardSelect = (event) => {
         const value = selection.getAttribute('data-v');
         const suit = selection.getAttribute('data-s');
 
-        playCard({ value, suit })
+        playCard({ value, suit });
+        endTurn();
     }
 }
 
 const onHumanPlayerCardPickup = (event) => {
     pickupCardFromDeck();
+    endTurn();
 }
 
 // * Assign interactions to view
@@ -185,39 +195,194 @@ document.querySelector("#pickup_deck").addEventListener("mousedown", onHumanPlay
 
 
 // * Define AI Interactions
-const onAIPlayerCardSelect = () => {
+const onAIPlayerCardSelect = (playable_cards) => {
     // * AI Player select card from hand
-    outputDetail(`[onAIPlayerCardSelect]`);
+    outputDetail(`[onAIPlayerCardSelect] Playing a card from hand`);
+
+    const card_choice_idx = Math.floor(Math.random() * playable_cards.length);
+
+    const playing_card = playable_cards[card_choice_idx];
+
+    playCard({
+        value: playing_card.value,
+        suit: playing_card.suit
+    });
+
+    endTurn();
+
 }
 const onAIPlayerCardPickup = () => {
     // * AI Player pickup card from deck
-    outputDetail(`[onAIPlayerCardPickup]`);
+    outputDetail(`[onAIPlayerCardPickup] Picking a card from the deck`);
     pickupCardFromDeck();
+    endTurn();
 }
 
 const chooseAIPlayerActionChoice = () => {
     // * Define AI choice here
-    onAIPlayerCardPickup();
-}
 
-// * Define turn functions
+    // * Check has playable cards
+    const current_AI_player = Players.getCurrentActivePlayer();
 
-const onEndTurn = () => {
-    // * update current players
-    Players.setNextActivePlayer();
+    // * get current hand
+    const current_hand = current_AI_player.getCurrentCards();
 
-    // * if AI
-    if (!Players.getCurrentActivePlayer().getIsHuman()) {
-        chooseAIPlayerActionChoice();
+    // * get playable cards from hand
+    const playable_cards = current_hand.filter((card) => {
+        return checkLegalPlayableMove(card);
+    });
+
+    outputDetail(`[chooseAIPlayerActionChoice] Number of playable cards: ${playable_cards.length}`);
+
+    // * if playable cards
+    if (playable_cards.length) {
+        // * choose either to play a card or pickup
+        // TODO: Give weighting to play cards when possible
+        let choice = Math.random();
+
+        // * more weighting to putting down cards than picking them up
+        if (choice >= 0.3) {
+            // * play a card
+            outputDetail(`[chooseAIPlayerActionChoice] Player has chosen to play a card`);
+            onAIPlayerCardSelect(playable_cards);
+        } else {
+            // * pickup a card
+            outputDetail(`[chooseAIPlayerActionChoice] Player has chosen to pickup a card`);
+            onAIPlayerCardPickup();
+        }
+
     } else {
-        // * is human
-        // ... wait for player interaction
+        // * no playable cards, so has to pickup
+        outputDetail(`Player must pickup`);
+        onAIPlayerCardPickup();
     }
 }
 
-const endTurn = () => {
-    outputDetail(`Ending turn...`);
+// * Define end turn functions
 
-    // * resolve anything before confirm turn is ended
-    onEndTurn();
+const onEndTurn = () => {
+
+    // * update current players
+    Players.setNextActivePlayer();
+
+    outputDetail(`[chooseAIPlayerActionChoice] It is now ${Players.getCurrentActivePlayer().getPlayerName()}s turn`);
+
+    // * Resolve any effects
+    if (Players.getCurrentActivePlayer().getEffectState() !== PLAYER_STATES.EFFECT_NO_EFFECT) {
+        outputDetail(`Current player is affected by ${Players.getCurrentActivePlayer().getEffectState()}`);
+        resolvePowerEffectState(
+            Players.getCurrentActivePlayer(),
+            Players.getCurrentActivePlayer().getEffectState()
+        );
+
+    } else {
+        // * no effect in play, continue as normal
+        // * if AI
+        if (!Players.getCurrentActivePlayer().getIsHuman()) {
+            outputDetail(`[chooseAIPlayerActionChoice] Player is thinking...`);
+            // * simulate player thinking before choice (slow down game)
+            window.setTimeout(chooseAIPlayerActionChoice, 2000);
+        } else {
+            // * is human
+            // ... wait for player interaction
+        }
+    }
+
+}
+
+const applyPowerEffect = (power) => {
+    switch (power) {
+        case POWERS.CHANGE_DIRECTION:
+            // * Change play direction
+            break;
+        case POWERS.CHANGE_SUIT:
+            // * Change playable suit
+            break;
+        case POWERS.ANOTHER_TURN:
+            // * Player has another go
+            Players.getCurrentNextPlayer().updateEffectState(PLAYER_STATES.EFFECT_ANOTHER_TURN);
+            break;
+        case POWERS.MISS_TURN:
+            // * Next player misses turn
+            Players.getCurrentNextPlayer().updateEffectState(PLAYER_STATES.EFFECT_MUST_MISS_TURN);
+            break;
+        case POWERS.PICKUP_2:
+            // * Next player must pickup 2
+            Players.getCurrentNextPlayer().updateEffectState(PLAYER_STATES.EFFECT_MUST_PICK_2);
+            break;
+        case POWERS.PICKUP_7:
+            // * Next player must pickup 7
+            Players.getCurrentNextPlayer().updateEffectState(PLAYER_STATES.EFFECT_MUST_PICK_7);
+            break;
+        default:
+            outputDetail(`[applyPowerEffect] Unknown power applied! ${power}`);
+    }
+}
+
+const resolvePowerEffectState = (currentPlayer, effect_state) => {
+    debugger;
+    switch (effect_state) {
+        case PLAYER_STATES.EFFECT_ANOTHER_TURN:
+            // * Player has another go
+            outputDetail(`[resolvePowerEffectState] Player taking another turn [TODO]`);
+            break;
+        case PLAYER_STATES.EFFECT_MUST_MISS_TURN:
+            // * go straight to end turn
+            outputDetail(`[resolvePowerEffectState] Missing Turn`);
+            endTurn();
+            break;
+        case PLAYER_STATES.EFFECT_MUST_PICK_2:
+            // * Next player must pickup 2 then end turn
+            outputDetail(`[resolvePowerEffectState] Picking up 2 cards`);
+            for (let c = 0; c < 2; c++) {
+                pickupCardFromDeck();
+            }
+            endTurn();
+            break;
+        case PLAYER_STATES.EFFECT_MUST_PICK_7:
+            // * Next player must pickup 7 then end turn
+            for (let c = 0; c < 7; c++) {
+                pickupCardFromDeck();
+            }
+            endTurn();
+            break;
+        default:
+            outputDetail(`[resolvePowerEffectState] Unknown effect state applied! ${effect_state}`);
+    }
+}
+
+const hasWinConditionBeenReached = () => {
+    outputDetail(`[hasWinConditionBeenReached] Checking win condition`);
+
+    // * Current player has won if they have no cards left
+    let num_cards_remaining = Players.getCurrentActivePlayer().getHandSize();
+
+    outputDetail(`[hasWinConditionBeenReached] Player has ${num_cards_remaining} cards remaining`);
+
+    return num_cards_remaining === 0;
+}
+
+const endTurn = () => {
+    Players.getCurrentActivePlayer().updatePlayState(PLAYER_STATES.HAS_PLAYED);
+
+    outputDetail(`[endTurn] Ending turn...`);
+
+    // * If player put card down, then apply power
+    outputDetail(`[endTurn] actionState of current player: ${Players.getCurrentActivePlayer().getActionState()}`);
+    if (Players.getCurrentActivePlayer().getActionState() === PLAYER_STATES.ACTION_DID_PUTDOWN) {
+        // * Player putdown a card, check if power card
+        const top_card = Deck.getDiscardDeckTopCard();
+        if (top_card.power) {
+            outputDetail(`[endTurn] Card putdown is a power card: ${top_card.power}`);
+            applyPowerEffect(top_card.power);
+        }
+    }
+
+    if (!hasWinConditionBeenReached()) {
+        // * resolve anything before confirm turn is ended
+        outputDetail(`------------`);
+        onEndTurn();
+    } else {
+        outputDetail(`[endTurn] ${Players.getCurrentActivePlayer().getPlayerName()} has won!`);
+    }
 }

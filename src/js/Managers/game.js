@@ -10,7 +10,8 @@ export const GameManager = () => {
         AI_interval_speed: null,
         AI_interval: null,
 
-        current_game_state: "INIT"
+        // current_game_state: "INIT"
+
     }
 
     // * Initialise the game world with a new config

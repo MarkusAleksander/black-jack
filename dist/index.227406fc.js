@@ -385,6 +385,8 @@ var _loop = require("./Utilities/loop");
 var _loopDefault = parcelHelpers.interopDefault(_loop);
 var _outputDetail = require("./Utilities/outputDetail");
 var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
+var _playerStates = require("./Player/player_states");
+var _powers = require("./Cards/powers");
 var _managers = require("./Managers/managers");
 var _player = require("./Player/player");
 // * create game managers
@@ -415,7 +417,7 @@ _loopDefault.default(Players.getPlayerList(), (player)=>{
     const player_name = player.getPlayerName();
     View.addPlayerHTML(player_name, document.getElementById(player_name));
 });
-// * initliase the deck
+// * initialise the deck
 Deck.init({
 });
 // * prepare the deck
@@ -463,10 +465,11 @@ const pickupCardFromDeck = ()=>{
     _outputDetailDefault.default(`[pickupCardFromDeck] Picked up card: ${top_card.name}`);
     // * if deck is now empty, then swap decks
     if (Deck.getPickupDeckSize() <= 0) Deck.swapDecks();
+    Players.getCurrentActivePlayer().updateActionState(_playerStates.ACTION_DID_PICKUP);
     // * redraw the view
     updateView();
-    // * end the turn
-    endTurn();
+// * end the turn
+// endTurn();
 };
 const checkLegalPlayableMove = ({ value , suit  })=>{
     // * get current card attempting to play upon
@@ -492,9 +495,10 @@ const playCard = ({ value , suit  })=>{
     });
     _outputDetailDefault.default(`[playCard] Playing card: ${card.name}`);
     Deck.insertToTopOfDiscardDeck(card);
+    Players.getCurrentActivePlayer().updateActionState(_playerStates.ACTION_DID_PUTDOWN);
     updateView();
-    // * end the turn
-    endTurn();
+// * end the turn
+// endTurn();
 };
 // * Define Human Player Interaction
 const onHumanPlayerCardSelect = (event)=>{
@@ -514,42 +518,164 @@ const onHumanPlayerCardSelect = (event)=>{
             value,
             suit
         });
+        endTurn();
     }
 };
 const onHumanPlayerCardPickup = (event)=>{
     pickupCardFromDeck();
+    endTurn();
 };
 // * Assign interactions to view
 document.querySelector("#Player_0 .card_list").addEventListener("mousedown", onHumanPlayerCardSelect);
 document.querySelector("#pickup_deck").addEventListener("mousedown", onHumanPlayerCardPickup);
 // * Define AI Interactions
-const onAIPlayerCardSelect = ()=>{
+const onAIPlayerCardSelect = (playable_cards)=>{
     // * AI Player select card from hand
-    _outputDetailDefault.default(`[onAIPlayerCardSelect]`);
+    _outputDetailDefault.default(`[onAIPlayerCardSelect] Playing a card from hand`);
+    const card_choice_idx = Math.floor(Math.random() * playable_cards.length);
+    const playing_card = playable_cards[card_choice_idx];
+    playCard({
+        value: playing_card.value,
+        suit: playing_card.suit
+    });
+    endTurn();
 };
 const onAIPlayerCardPickup = ()=>{
     // * AI Player pickup card from deck
-    _outputDetailDefault.default(`[onAIPlayerCardPickup]`);
+    _outputDetailDefault.default(`[onAIPlayerCardPickup] Picking a card from the deck`);
     pickupCardFromDeck();
+    endTurn();
 };
 const chooseAIPlayerActionChoice = ()=>{
     // * Define AI choice here
-    onAIPlayerCardPickup();
+    // * Check has playable cards
+    const current_AI_player = Players.getCurrentActivePlayer();
+    // * get current hand
+    const current_hand = current_AI_player.getCurrentCards();
+    // * get playable cards from hand
+    const playable_cards = current_hand.filter((card)=>{
+        return checkLegalPlayableMove(card);
+    });
+    _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Number of playable cards: ${playable_cards.length}`);
+    // * if playable cards
+    if (playable_cards.length) {
+        // * choose either to play a card or pickup
+        // TODO: Give weighting to play cards when possible
+        let choice = Math.random();
+        // * more weighting to putting down cards than picking them up
+        if (choice >= 0.3) {
+            // * play a card
+            _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Player has chosen to play a card`);
+            onAIPlayerCardSelect(playable_cards);
+        } else {
+            // * pickup a card
+            _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Player has chosen to pickup a card`);
+            onAIPlayerCardPickup();
+        }
+    } else {
+        // * no playable cards, so has to pickup
+        _outputDetailDefault.default(`Player must pickup`);
+        onAIPlayerCardPickup();
+    }
 };
-// * Define turn functions
+// * Define end turn functions
 const onEndTurn = ()=>{
     // * update current players
     Players.setNextActivePlayer();
+    _outputDetailDefault.default(`[chooseAIPlayerActionChoice] It is now ${Players.getCurrentActivePlayer().getPlayerName()}s turn`);
+    // * Resolve any effects
+    if (Players.getCurrentActivePlayer().getEffectState() !== _playerStates.EFFECT_NO_EFFECT) {
+        _outputDetailDefault.default(`Current player is affected by ${Players.getCurrentActivePlayer().getEffectState()}`);
+        resolvePowerEffectState(Players.getCurrentActivePlayer(), Players.getCurrentActivePlayer().getEffectState());
+    } else // * no effect in play, continue as normal
     // * if AI
-    if (!Players.getCurrentActivePlayer().getIsHuman()) chooseAIPlayerActionChoice();
+    if (!Players.getCurrentActivePlayer().getIsHuman()) {
+        _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Player is thinking...`);
+        // * simulate player thinking before choice (slow down game)
+        window.setTimeout(chooseAIPlayerActionChoice, 2000);
+    }
+};
+const applyPowerEffect = (power)=>{
+    switch(power){
+        case _powers.CHANGE_DIRECTION:
+            break;
+        case _powers.CHANGE_SUIT:
+            break;
+        case _powers.ANOTHER_TURN:
+            // * Player has another go
+            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_ANOTHER_TURN);
+            break;
+        case _powers.MISS_TURN:
+            // * Next player misses turn
+            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_MUST_MISS_TURN);
+            break;
+        case _powers.PICKUP_2:
+            // * Next player must pickup 2
+            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_MUST_PICK_2);
+            break;
+        case _powers.PICKUP_7:
+            // * Next player must pickup 7
+            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_MUST_PICK_7);
+            break;
+        default:
+            _outputDetailDefault.default(`[applyPowerEffect] Unknown power applied! ${power}`);
+    }
+};
+const resolvePowerEffectState = (currentPlayer, effect_state)=>{
+    debugger;
+    switch(effect_state){
+        case _playerStates.EFFECT_ANOTHER_TURN:
+            // * Player has another go
+            _outputDetailDefault.default(`[resolvePowerEffectState] Player taking another turn [TODO]`);
+            break;
+        case _playerStates.EFFECT_MUST_MISS_TURN:
+            // * go straight to end turn
+            _outputDetailDefault.default(`[resolvePowerEffectState] Missing Turn`);
+            endTurn();
+            break;
+        case _playerStates.EFFECT_MUST_PICK_2:
+            // * Next player must pickup 2 then end turn
+            _outputDetailDefault.default(`[resolvePowerEffectState] Picking up 2 cards`);
+            for(let c = 0; c < 2; c++)pickupCardFromDeck();
+            endTurn();
+            break;
+        case _playerStates.EFFECT_MUST_PICK_7:
+            // * Next player must pickup 7 then end turn
+            for(let c1 = 0; c1 < 7; c1++)pickupCardFromDeck();
+            endTurn();
+            break;
+        default:
+            _outputDetailDefault.default(`[resolvePowerEffectState] Unknown effect state applied! ${effect_state}`);
+    }
+};
+const hasWinConditionBeenReached = ()=>{
+    _outputDetailDefault.default(`[hasWinConditionBeenReached] Checking win condition`);
+    // * Current player has won if they have no cards left
+    let num_cards_remaining = Players.getCurrentActivePlayer().getHandSize();
+    _outputDetailDefault.default(`[hasWinConditionBeenReached] Player has ${num_cards_remaining} cards remaining`);
+    return num_cards_remaining === 0;
 };
 const endTurn = ()=>{
-    _outputDetailDefault.default(`Ending turn...`);
-    // * resolve anything before confirm turn is ended
-    onEndTurn();
+    Players.getCurrentActivePlayer().updatePlayState(_playerStates.HAS_PLAYED);
+    _outputDetailDefault.default(`[endTurn] Ending turn...`);
+    // * If player put card down, then apply power
+    _outputDetailDefault.default(`[endTurn] actionState of current player: ${Players.getCurrentActivePlayer().getActionState()}`);
+    if (Players.getCurrentActivePlayer().getActionState() === _playerStates.ACTION_DID_PUTDOWN) {
+        // * Player putdown a card, check if power card
+        const top_card = Deck.getDiscardDeckTopCard();
+        if (top_card.power) {
+            _outputDetailDefault.default(`[endTurn] Card putdown is a power card: ${top_card.power}`);
+            applyPowerEffect(top_card.power);
+        }
+    }
+    if (!hasWinConditionBeenReached()) {
+        // * resolve anything before confirm turn is ended
+        _outputDetailDefault.default(`------------`);
+        onEndTurn();
+    } else _outputDetailDefault.default(`[endTurn] ${Players.getCurrentActivePlayer().getPlayerName()} has won!`);
 };
 
-},{"./Managers/managers":"5IueX","./Utilities/loop":"cwOcG","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./Utilities/outputDetail":"cC0a2","./Player/player":"92V2m"}],"5IueX":[function(require,module,exports) {
+},{"./Managers/managers":"5IueX","./Utilities/loop":"cwOcG","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./Utilities/outputDetail":"cC0a2","./Player/player":"92V2m","./Player/player_states":"g1ajd","./Cards/powers":"9DqYi"}],"5IueX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 // * Export managers through here
@@ -577,8 +703,7 @@ const GameManager = ()=>{
         mode: "DEBUG",
         active_player: null,
         AI_interval_speed: null,
-        AI_interval: null,
-        current_game_state: "INIT"
+        AI_interval: null
     };
     // * Initialise the game world with a new config
     const init = (config = {
@@ -788,6 +913,7 @@ var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "cards", ()=>cards
 );
+var _powers = require("./powers");
 const cards = [
     {
         value: "A",
@@ -795,14 +921,15 @@ const cards = [
         name: "Ace of Hearts",
         t: 2,
         l: 0,
-        power: 4
+        power: _powers.CHANGE_SUIT
     },
     {
         value: 13,
         suit: "hearts",
         name: "King of Hearts",
         t: 2,
-        l: 12
+        l: 12,
+        power: _powers.ANOTHER_TURN
     },
     {
         value: 12,
@@ -816,8 +943,7 @@ const cards = [
         suit: "hearts",
         name: "Jack of Hearts",
         t: 2,
-        l: 10,
-        power: 4
+        l: 10
     },
     {
         value: 10,
@@ -825,7 +951,7 @@ const cards = [
         name: "10 of Hearts",
         t: 2,
         l: 9,
-        power: 2
+        power: _powers.CHANGE_DIRECTION
     },
     {
         value: 9,
@@ -840,7 +966,7 @@ const cards = [
         name: "8 of Hearts",
         t: 2,
         l: 7,
-        power: 1
+        power: _powers.MISS_TURN
     },
     {
         value: 7,
@@ -883,7 +1009,7 @@ const cards = [
         name: "2 of Hearts",
         t: 2,
         l: 1,
-        power: 1
+        power: _powers.PICKUP_2
     },
     {
         value: "A",
@@ -891,14 +1017,15 @@ const cards = [
         name: "Ace of Clubs",
         t: 0,
         l: 0,
-        power: 4
+        power: _powers.CHANGE_SUIT
     },
     {
         value: 13,
         suit: "clubs",
         name: "King of Clubs",
         t: 0,
-        l: 12
+        l: 12,
+        power: _powers.ANOTHER_TURN
     },
     {
         value: 12,
@@ -913,7 +1040,7 @@ const cards = [
         name: "Jack of Clubs",
         t: 0,
         l: 10,
-        power: 4
+        power: _powers.PICKUP_7
     },
     {
         value: 10,
@@ -921,7 +1048,7 @@ const cards = [
         name: "10 of Clubs",
         t: 0,
         l: 9,
-        power: 2
+        power: _powers.CHANGE_DIRECTION
     },
     {
         value: 9,
@@ -936,7 +1063,7 @@ const cards = [
         name: "8 of Clubs",
         t: 0,
         l: 7,
-        power: 1
+        power: _powers.MISS_TURN
     },
     {
         value: 7,
@@ -979,7 +1106,7 @@ const cards = [
         name: "2 of Clubs",
         t: 0,
         l: 1,
-        power: 1
+        power: _powers.PICKUP_2
     },
     {
         value: "A",
@@ -987,14 +1114,15 @@ const cards = [
         name: "Ace of Diamonds",
         t: 1,
         l: 0,
-        power: 4
+        power: _powers.CHANGE_SUIT
     },
     {
         value: 13,
         suit: "diamonds",
         name: "King of Diamonds",
         t: 1,
-        l: 12
+        l: 12,
+        power: _powers.ANOTHER_TURN
     },
     {
         value: 12,
@@ -1008,8 +1136,7 @@ const cards = [
         suit: "diamonds",
         name: "Jack of Diamonds",
         t: 1,
-        l: 10,
-        power: 4
+        l: 10
     },
     {
         value: 10,
@@ -1017,7 +1144,7 @@ const cards = [
         name: "10 of Diamonds",
         t: 1,
         l: 9,
-        power: 2
+        power: _powers.CHANGE_DIRECTION
     },
     {
         value: 9,
@@ -1032,7 +1159,7 @@ const cards = [
         name: "8 of Diamonds",
         t: 1,
         l: 7,
-        power: 1
+        power: _powers.MISS_TURN
     },
     {
         value: 7,
@@ -1075,7 +1202,7 @@ const cards = [
         name: "2 of Diamonds",
         t: 1,
         l: 1,
-        power: 1
+        power: _powers.PICKUP_2
     },
     {
         value: "A",
@@ -1083,14 +1210,15 @@ const cards = [
         name: "Ace of Spades",
         t: 3,
         l: 0,
-        power: 4
+        power: _powers.CHANGE_SUIT
     },
     {
         value: 13,
         suit: "spades",
         name: "King of Spades",
         t: 3,
-        l: 12
+        l: 12,
+        power: _powers.ANOTHER_TURN
     },
     {
         value: 12,
@@ -1105,7 +1233,7 @@ const cards = [
         name: "Jack of Spades",
         t: 3,
         l: 10,
-        power: 4
+        power: _powers.PICKUP_7
     },
     {
         value: 10,
@@ -1113,7 +1241,7 @@ const cards = [
         name: "10 of Spades",
         t: 3,
         l: 9,
-        power: 2
+        power: _powers.CHANGE_DIRECTION
     },
     {
         value: 9,
@@ -1128,7 +1256,7 @@ const cards = [
         name: "8 of Spades",
         t: 3,
         l: 7,
-        power: 1
+        power: _powers.MISS_TURN
     },
     {
         value: 7,
@@ -1171,9 +1299,31 @@ const cards = [
         name: "2 of Spades",
         t: 3,
         l: 1,
-        power: 1
-    }
+        power: _powers.PICKUP_2
+    }, 
 ];
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./powers":"9DqYi"}],"9DqYi":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "PICKUP_2", ()=>PICKUP_2
+);
+parcelHelpers.export(exports, "PICKUP_7", ()=>PICKUP_7
+);
+parcelHelpers.export(exports, "MISS_TURN", ()=>MISS_TURN
+);
+parcelHelpers.export(exports, "ANOTHER_TURN", ()=>ANOTHER_TURN
+);
+parcelHelpers.export(exports, "CHANGE_DIRECTION", ()=>CHANGE_DIRECTION
+);
+parcelHelpers.export(exports, "CHANGE_SUIT", ()=>CHANGE_SUIT
+);
+const PICKUP_2 = "PICKUP_2";
+const PICKUP_7 = "PICKUP_7";
+const MISS_TURN = "MISS_TURN";
+const ANOTHER_TURN = "ANOTHER_TURN";
+const CHANGE_DIRECTION = "CHANGE_DIRECTION";
+const CHANGE_SUIT = "CHANGE_SUIT";
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"cwOcG":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -1202,6 +1352,7 @@ var _updateObject = require("./../Utilities/updateObject");
 var _player = require("../Player/player");
 var _outputDetail = require("../Utilities/outputDetail");
 var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
+var _playerStates = require("../Player/player_states");
 const PlayerManager = ()=>{
     const state = {
         num_players: 4,
@@ -1231,15 +1382,27 @@ const PlayerManager = ()=>{
         }
     };
     const setNextActivePlayer = ()=>{
+        // * current idx now becomes previous idx
         state.previous_player_idx = state.current_player_idx;
+        // * next player idx now becomes current idx
         state.current_player_idx = state.next_player_idx;
-        let next_player = state.next_player_idx + 1;
-        if (next_player >= state.num_players) next_player = 0;
-        state.next_player_idx = next_player;
-        state.player_list[state.previous_player_idx].setActive(false);
-        state.player_list[state.current_player_idx].setActive(true);
-        state.player_list[state.next_player_idx].setActive(false);
-        _outputDetailDefault.default(`Current active player is now: ${state.player_list[state.current_player_idx].getPlayerName()}`);
+        // * next player now becomes next + 1
+        let next_player_idx = state.next_player_idx + 1;
+        // * check if we have to loop back round
+        if (next_player_idx >= state.num_players) next_player_idx = 0;
+        state.next_player_idx = next_player_idx;
+        // * Get and update new previous
+        let previous_player = state.player_list[state.previous_player_idx];
+        // * Reset to idle
+        previous_player.resetStatus();
+        // * Get and update new current player
+        let current_player = state.player_list[state.current_player_idx];
+        // * Ensure no effects are in place
+        if (current_player.getEffectState() === _playerStates.EFFECT_NO_EFFECT) // * unaffected, normal play
+        current_player.updatePlayState(_playerStates.TO_PLAY);
+        // * Get and update new next player if needed
+        let next_player = state.player_list[state.next_player_idx];
+        _outputDetailDefault.default(`Current active player is now: ${current_player.getPlayerName()}`);
     };
     const getCurrentActivePlayer = ()=>{
         return state.player_list[state.current_player_idx];
@@ -1276,18 +1439,25 @@ const PlayerManager = ()=>{
     };
 };
 
-},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/outputDetail":"cC0a2"}],"92V2m":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/outputDetail":"cC0a2","../Player/player_states":"g1ajd"}],"92V2m":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Player", ()=>Player
 );
+var _outputDetail = require("../Utilities/outputDetail");
+var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
 var _updateObject = require("./../Utilities/updateObject");
+var _playerStates = require("./player_states");
 const Player = ()=>{
     const state = {
-        is_active: false,
         name: null,
         deck: [],
-        is_human: false
+        is_human: false,
+        status: {
+            play_state: _playerStates.IDLE,
+            action: _playerStates.ACTION_NO_ACTION,
+            effect: _playerStates.EFFECT_NO_EFFECT
+        }
     };
     const init = (config)=>{
         _updateObject.updateObject(state, config);
@@ -1304,9 +1474,6 @@ const Player = ()=>{
     const removeCards = (idx, num_cards)=>{
         state.deck.splice(idx, num_cards);
     };
-    const setActive = (active)=>{
-        state.active = active;
-    };
     const getPlayerName = ()=>{
         return state.name;
     };
@@ -1316,12 +1483,46 @@ const Player = ()=>{
     const getCurrentCards = ()=>{
         return state.deck;
     };
+    const getHandSize = ()=>{
+        return state.deck.length;
+    };
     const removeCard = ({ value , suit  })=>{
         let cardIdx = state.deck.findIndex((card)=>{
             return card.value == value && card.suit == suit;
         });
         if (cardIdx < 0) console.error("Selected player card not found");
         return state.deck.splice(cardIdx, 1)[0];
+    };
+    const resetStatus = ()=>{
+        state.status = {
+            play_state: _playerStates.IDLE,
+            action: _playerStates.ACTION_NO_ACTION,
+            effect: _playerStates.EFFECT_NO_EFFECT
+        };
+    };
+    const getStatus = ()=>{
+        return state.status;
+    };
+    const updatePlayState = (play_state)=>{
+        _outputDetailDefault.default(`${state.name} [state.play_state] is now ${play_state}`);
+        state.status.play_state = play_state;
+    };
+    const getPlayState = ()=>{
+        return state.status.play_state;
+    };
+    const updateActionState = (action_state)=>{
+        _outputDetailDefault.default(`${state.name} [state.action] is now ${action_state}`);
+        state.status.action = action_state;
+    };
+    const getActionState = ()=>{
+        return state.status.action;
+    };
+    const updateEffectState = (effect_state)=>{
+        _outputDetailDefault.default(`${state.name} [state.effect] is now ${effect_state}`);
+        state.status.effect = effect_state;
+    };
+    const getEffectState = ()=>{
+        return state.status.effect;
     };
     return {
         init,
@@ -1330,14 +1531,59 @@ const Player = ()=>{
         removeCard,
         removeCardAtIndex,
         removeCards,
-        setActive,
         getPlayerName,
         getCurrentCards,
-        getIsHuman
+        getIsHuman,
+        getHandSize,
+        resetStatus,
+        getStatus,
+        updatePlayState,
+        getPlayState,
+        updateActionState,
+        getActionState,
+        updateEffectState,
+        getEffectState
     };
 };
 
-},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"fuhyS":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./player_states":"g1ajd","../Utilities/outputDetail":"cC0a2"}],"g1ajd":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "IDLE", ()=>IDLE
+);
+parcelHelpers.export(exports, "TO_PLAY", ()=>TO_PLAY
+);
+parcelHelpers.export(exports, "HAS_PLAYED", ()=>HAS_PLAYED
+);
+parcelHelpers.export(exports, "ACTION_DID_PICKUP", ()=>ACTION_DID_PICKUP
+);
+parcelHelpers.export(exports, "ACTION_DID_PUTDOWN", ()=>ACTION_DID_PUTDOWN
+);
+parcelHelpers.export(exports, "ACTION_NO_ACTION", ()=>ACTION_NO_ACTION
+);
+parcelHelpers.export(exports, "EFFECT_MUST_PICK_2", ()=>EFFECT_MUST_PICK_2
+);
+parcelHelpers.export(exports, "EFFECT_MUST_PICK_7", ()=>EFFECT_MUST_PICK_7
+);
+parcelHelpers.export(exports, "EFFECT_MUST_MISS_TURN", ()=>EFFECT_MUST_MISS_TURN
+);
+parcelHelpers.export(exports, "EFFECT_ANOTHER_TURN", ()=>EFFECT_ANOTHER_TURN
+);
+parcelHelpers.export(exports, "EFFECT_NO_EFFECT", ()=>EFFECT_NO_EFFECT
+);
+const IDLE = "IDLE";
+const TO_PLAY = "TO_PLAY";
+const HAS_PLAYED = "HAS_PLAYED";
+const ACTION_DID_PICKUP = "DID_PICKUP";
+const ACTION_DID_PUTDOWN = "DID_PUTDOWN";
+const ACTION_NO_ACTION = "NO_ACTION";
+const EFFECT_MUST_PICK_2 = "MUST_PICK_2";
+const EFFECT_MUST_PICK_7 = "MUST_PICK_7";
+const EFFECT_MUST_MISS_TURN = "MUST_MISS_TURN";
+const EFFECT_ANOTHER_TURN = "EFFECT_ANOTHER_TURN";
+const EFFECT_NO_EFFECT = "EFFECT_NO_EFFECT";
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"fuhyS":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "ViewManager", ()=>ViewManager

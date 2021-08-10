@@ -1,9 +1,9 @@
 import { updateObject } from "./../Utilities/updateObject";
 import { Player } from "../Player/player";
-import outputDetail from "../Utilities/outputDetail";
+import debugDetail from "../Utilities/debugDetail";
 import * as PLAYER_STATES from "../Player/player_states";
 
-export const PlayerManager = () => {
+const PlayerManager = () => {
 
     const state = {
         num_players: 4,
@@ -67,7 +67,7 @@ export const PlayerManager = () => {
         // * Get and update new next player if needed
         let next_player = state.player_list[state.next_player_idx];
 
-        outputDetail(`Current active player is now: ${current_player.getPlayerName()}`);
+        debugDetail(`Current active player is now: ${current_player.getPlayerName()}`);
     }
 
     const getCurrentActivePlayer = () => {
@@ -112,3 +112,5 @@ export const PlayerManager = () => {
     }
 
 }
+
+export const Players = PlayerManager();

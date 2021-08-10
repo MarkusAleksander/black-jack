@@ -1,11 +1,11 @@
 import { updateObject } from "./../Utilities/updateObject";
 
-export const ViewManager = () => {
+const ViewManager = () => {
 
     const state = {
         pickup_deck_el: null,
         discard_deck_el: null,
-        player_el_data: {},
+        updates_board_el: null,
 
         card_w: 59,
         card_h: 90,
@@ -13,14 +13,6 @@ export const ViewManager = () => {
 
     const init = (config = {}) => {
         updateObject(state, config);
-    }
-
-    const addPlayerHTML = (player_name, el) => {
-        state.player_el_data[player_name] = el;
-    }
-
-    const getPlayerHTML = (player_name) => {
-        return state.player_el_data[player_name];
     }
 
     const createCardHTML = (card, is_facing) => {
@@ -45,14 +37,21 @@ export const ViewManager = () => {
         return state.discard_deck_el;
     }
 
+    const getGameUpdateBoard = () => {
+        return state.updates_board_el;
+    }
+
     return {
         init,
-        addPlayerHTML,
-        getPlayerHTML,
+
         createListedCardHTML,
         createCardHTML,
 
         getPickupDeck,
         getDiscardDeck,
+
+        getGameUpdateBoard,
     }
 }
+
+export const View = ViewManager();

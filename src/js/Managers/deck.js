@@ -1,10 +1,10 @@
-import outputDetail from "../Utilities/outputDetail";
+import debugDetail from "../Utilities/debugDetail";
 import { cards } from "./../Cards/cards";
 import loop from "./../Utilities/loop";
 
 import { updateObject } from "./../Utilities/updateObject";
 
-export const DeckManager = () => {
+const DeckManager = () => {
 
     const PICKUP_DECK = cards;
 
@@ -133,7 +133,7 @@ export const DeckManager = () => {
     }
 
     const swapDecks = () => {
-        outputDetail(`Refilling Pickup Deck from Discard Deck`);
+        debugDetail(`Refilling Pickup Deck from Discard Deck`);
 
         // TODO - What if no cards are left?
 
@@ -180,3 +180,5 @@ export const DeckManager = () => {
     }
 
 }
+
+export const Deck = DeckManager();

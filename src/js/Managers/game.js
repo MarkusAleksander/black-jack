@@ -1,7 +1,7 @@
 import { updateObject } from "./../Utilities/updateObject";
 
 // * Manage the running of the game, linking components
-export const GameManager = () => {
+const GameManager = () => {
 
     const state = {
         mode: "DEBUG",
@@ -38,3 +38,5 @@ export const GameManager = () => {
     }
 
 }
+
+export const Game = GameManager();

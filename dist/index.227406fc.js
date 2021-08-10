@@ -381,311 +381,64 @@ function hmrAcceptRun(bundle /*: ParcelRequire */ , id /*: string */ ) {
 
 },{}],"23obh":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-var _loop = require("./Utilities/loop");
-var _loopDefault = parcelHelpers.interopDefault(_loop);
-var _outputDetail = require("./Utilities/outputDetail");
-var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
-var _playerStates = require("./Player/player_states");
-var _powers = require("./Cards/powers");
+var _updateView = require("./View/updateView");
+var _updateViewDefault = parcelHelpers.interopDefault(_updateView);
+var _outputToBoard = require("./View/outputToBoard");
+var _outputToBoardDefault = parcelHelpers.interopDefault(_outputToBoard);
+var _onHumanPlayerCardSelect = require("./Gameplay/Play/onHumanPlayerCardSelect");
+var _onHumanPlayerCardSelectDefault = parcelHelpers.interopDefault(_onHumanPlayerCardSelect);
+var _handleCardPickup = require("./Gameplay/Pickup/handleCardPickup");
+var _handleCardPickupDefault = parcelHelpers.interopDefault(_handleCardPickup);
 var _managers = require("./Managers/managers");
-var _player = require("./Player/player");
-// * create game managers
-const Game = _managers.GameManager();
-const Deck = _managers.DeckManager();
-const Players = _managers.PlayerManager();
-const View = _managers.ViewManager();
 // * add window references for debugging
-window.Game = Game;
-window.Deck = Deck;
-window.Players = Players;
-window.View = View;
-// * initialise the game world
-Game.init({
+window.Game = _managers.Game;
+window.Deck = _managers.Deck;
+window.Players = _managers.Players;
+window.View = _managers.View;
+// * ------ Initialisation ------- * //
+// * Initialise Game World
+_managers.Game.init({
 });
-// * initialise the players
-Players.init({
+// * Initialise Players
+_managers.Players.init({
     num_players: 4
 });
-Players.createPlayers();
-// * initialise the view
-View.init({
+// * Initialise View
+_managers.View.init({
     pickup_deck_el: document.getElementById("pickup_deck"),
-    discard_deck_el: document.getElementById("discard_deck")
-});
-// * name the players
-_loopDefault.default(Players.getPlayerList(), (player)=>{
-    const player_name = player.getPlayerName();
-    View.addPlayerHTML(player_name, document.getElementById(player_name));
+    discard_deck_el: document.getElementById("discard_deck"),
+    updates_board_el: document.getElementById("game_updates")
 });
 // * initialise the deck
-Deck.init({
+_managers.Deck.init({
 });
+// * ------ Preparation ------- * //
+// * Create the players
+_managers.Players.createPlayers();
 // * prepare the deck
-Deck.prepareDeck();
+_managers.Deck.prepareDeck();
 // * deal cards to each player
-Deck.dealCards(Players.getPlayerList());
-// * Define discard drawing function
-const drawDiscardDeck = ()=>{
-    let card = Deck.getDiscardDeck()[0];
-    let card_HTML = View.createCardHTML(card, true);
-    View.getDiscardDeck().innerHTML = card_HTML;
-};
-// * Define drawing player deck functions
-const drawPlayerDecks = ()=>{
-    _loopDefault.default(Players.getPlayerList(), (player)=>{
-        const deck = player.getCurrentCards();
-        // * get deck element
-        const deck_el = document.getElementById(player.getPlayerName()).querySelector('.card_list');
-        // * remove HTML
-        deck_el.innerHTML = "";
-        _loopDefault.default(deck, (card)=>{
-            deck_el.insertAdjacentHTML("beforeend", View.createListedCardHTML(card, true));
-        });
-    });
-};
-// * update view 
-const updateView = ()=>{
-    // * Draw player decks
-    drawPlayerDecks();
-    // * Draw discard decks
-    drawDiscardDeck();
-};
+_managers.Deck.dealCards(_managers.Players.getPlayerList());
+// * ------ Start Play ------- * //
 // * Do initial draw
-updateView();
-// * define turn actions
-// * Pickup a card from the deck
-const pickupCardFromDeck = ()=>{
-    _outputDetailDefault.default(`[pickupCardFromDeck] Picking up card`);
-    // * get current player attempting pickup
-    let current_player = Players.getCurrentActivePlayer();
-    // * get pickup deck
-    let top_card = Deck.removeCardByIndexFromPickupDeck(0);
-    // * add picked up card to player deck
-    current_player.addCard(top_card);
-    _outputDetailDefault.default(`[pickupCardFromDeck] Picked up card: ${top_card.name}`);
-    // * if deck is now empty, then swap decks
-    if (Deck.getPickupDeckSize() <= 0) Deck.swapDecks();
-    Players.getCurrentActivePlayer().updateActionState(_playerStates.ACTION_DID_PICKUP);
-    // * redraw the view
-    updateView();
-// * end the turn
-// endTurn();
-};
-const checkLegalPlayableMove = ({ value , suit  })=>{
-    // * get current card attempting to play upon
-    const current_top_card = Deck.getDiscardDeckTopCard();
-    // * playable card must be of the same suit or of the same value
-    return value == current_top_card.value || suit == current_top_card.suit;
-};
-const playCard = ({ value , suit  })=>{
-    _outputDetailDefault.default(`[playCard] Attempting to play`);
-    // * get card from player hand
-    let current_player = Players.getCurrentActivePlayer();
-    // * RULES HERE
-    if (!checkLegalPlayableMove({
-        value,
-        suit
-    })) {
-        _outputDetailDefault.default(`[playCard] Card not playable`);
-        return;
-    }
-    const card = current_player.removeCard({
-        value,
-        suit
-    });
-    _outputDetailDefault.default(`[playCard] Playing card: ${card.name}`);
-    Deck.insertToTopOfDiscardDeck(card);
-    Players.getCurrentActivePlayer().updateActionState(_playerStates.ACTION_DID_PUTDOWN);
-    updateView();
-// * end the turn
-// endTurn();
-};
-// * Define Human Player Interaction
-const onHumanPlayerCardSelect = (event)=>{
-    _outputDetailDefault.default(`[onHumanPlayerCardSelect]`);
-    if (!Players.getCurrentActivePlayer().getIsHuman()) {
-        _outputDetailDefault.default(`[onHumanPlayerCardSelect] Human player not currently active`);
-        return;
-    }
-    // * check valid click target
-    const selection = event.target.parentNode || event.srcElement.parentNode;
-    // * make sure a card was clicked
-    if (selection.className == "card") {
-        // * get card reference
-        const value = selection.getAttribute('data-v');
-        const suit = selection.getAttribute('data-s');
-        playCard({
-            value,
-            suit
-        });
-        endTurn();
-    }
-};
-const onHumanPlayerCardPickup = (event)=>{
-    pickupCardFromDeck();
-    endTurn();
-};
+_updateViewDefault.default();
 // * Assign interactions to view
-document.querySelector("#Player_0 .card_list").addEventListener("mousedown", onHumanPlayerCardSelect);
-document.querySelector("#pickup_deck").addEventListener("mousedown", onHumanPlayerCardPickup);
-// * Define AI Interactions
-const onAIPlayerCardSelect = (playable_cards)=>{
-    // * AI Player select card from hand
-    _outputDetailDefault.default(`[onAIPlayerCardSelect] Playing a card from hand`);
-    const card_choice_idx = Math.floor(Math.random() * playable_cards.length);
-    const playing_card = playable_cards[card_choice_idx];
-    playCard({
-        value: playing_card.value,
-        suit: playing_card.suit
-    });
-    endTurn();
-};
-const onAIPlayerCardPickup = ()=>{
-    // * AI Player pickup card from deck
-    _outputDetailDefault.default(`[onAIPlayerCardPickup] Picking a card from the deck`);
-    pickupCardFromDeck();
-    endTurn();
-};
-const chooseAIPlayerActionChoice = ()=>{
-    // * Define AI choice here
-    // * Check has playable cards
-    const current_AI_player = Players.getCurrentActivePlayer();
-    // * get current hand
-    const current_hand = current_AI_player.getCurrentCards();
-    // * get playable cards from hand
-    const playable_cards = current_hand.filter((card)=>{
-        return checkLegalPlayableMove(card);
-    });
-    _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Number of playable cards: ${playable_cards.length}`);
-    // * if playable cards
-    if (playable_cards.length) {
-        // * choose either to play a card or pickup
-        // TODO: Give weighting to play cards when possible
-        let choice = Math.random();
-        // * more weighting to putting down cards than picking them up
-        if (choice >= 0.3) {
-            // * play a card
-            _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Player has chosen to play a card`);
-            onAIPlayerCardSelect(playable_cards);
-        } else {
-            // * pickup a card
-            _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Player has chosen to pickup a card`);
-            onAIPlayerCardPickup();
-        }
-    } else {
-        // * no playable cards, so has to pickup
-        _outputDetailDefault.default(`Player must pickup`);
-        onAIPlayerCardPickup();
-    }
-};
-// * Define end turn functions
-const onEndTurn = ()=>{
-    // * update current players
-    Players.setNextActivePlayer();
-    _outputDetailDefault.default(`[chooseAIPlayerActionChoice] It is now ${Players.getCurrentActivePlayer().getPlayerName()}s turn`);
-    // * Resolve any effects
-    if (Players.getCurrentActivePlayer().getEffectState() !== _playerStates.EFFECT_NO_EFFECT) {
-        _outputDetailDefault.default(`Current player is affected by ${Players.getCurrentActivePlayer().getEffectState()}`);
-        resolvePowerEffectState(Players.getCurrentActivePlayer(), Players.getCurrentActivePlayer().getEffectState());
-    } else // * no effect in play, continue as normal
-    // * if AI
-    if (!Players.getCurrentActivePlayer().getIsHuman()) {
-        _outputDetailDefault.default(`[chooseAIPlayerActionChoice] Player is thinking...`);
-        // * simulate player thinking before choice (slow down game)
-        window.setTimeout(chooseAIPlayerActionChoice, 2000);
-    }
-};
-const applyPowerEffect = (power)=>{
-    switch(power){
-        case _powers.CHANGE_DIRECTION:
-            break;
-        case _powers.CHANGE_SUIT:
-            break;
-        case _powers.ANOTHER_TURN:
-            // * Player has another go
-            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_ANOTHER_TURN);
-            break;
-        case _powers.MISS_TURN:
-            // * Next player misses turn
-            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_MUST_MISS_TURN);
-            break;
-        case _powers.PICKUP_2:
-            // * Next player must pickup 2
-            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_MUST_PICK_2);
-            break;
-        case _powers.PICKUP_7:
-            // * Next player must pickup 7
-            Players.getCurrentNextPlayer().updateEffectState(_playerStates.EFFECT_MUST_PICK_7);
-            break;
-        default:
-            _outputDetailDefault.default(`[applyPowerEffect] Unknown power applied! ${power}`);
-    }
-};
-const resolvePowerEffectState = (currentPlayer, effect_state)=>{
-    debugger;
-    switch(effect_state){
-        case _playerStates.EFFECT_ANOTHER_TURN:
-            // * Player has another go
-            _outputDetailDefault.default(`[resolvePowerEffectState] Player taking another turn [TODO]`);
-            break;
-        case _playerStates.EFFECT_MUST_MISS_TURN:
-            // * go straight to end turn
-            _outputDetailDefault.default(`[resolvePowerEffectState] Missing Turn`);
-            endTurn();
-            break;
-        case _playerStates.EFFECT_MUST_PICK_2:
-            // * Next player must pickup 2 then end turn
-            _outputDetailDefault.default(`[resolvePowerEffectState] Picking up 2 cards`);
-            for(let c = 0; c < 2; c++)pickupCardFromDeck();
-            endTurn();
-            break;
-        case _playerStates.EFFECT_MUST_PICK_7:
-            // * Next player must pickup 7 then end turn
-            for(let c1 = 0; c1 < 7; c1++)pickupCardFromDeck();
-            endTurn();
-            break;
-        default:
-            _outputDetailDefault.default(`[resolvePowerEffectState] Unknown effect state applied! ${effect_state}`);
-    }
-};
-const hasWinConditionBeenReached = ()=>{
-    _outputDetailDefault.default(`[hasWinConditionBeenReached] Checking win condition`);
-    // * Current player has won if they have no cards left
-    let num_cards_remaining = Players.getCurrentActivePlayer().getHandSize();
-    _outputDetailDefault.default(`[hasWinConditionBeenReached] Player has ${num_cards_remaining} cards remaining`);
-    return num_cards_remaining === 0;
-};
-const endTurn = ()=>{
-    Players.getCurrentActivePlayer().updatePlayState(_playerStates.HAS_PLAYED);
-    _outputDetailDefault.default(`[endTurn] Ending turn...`);
-    // * If player put card down, then apply power
-    _outputDetailDefault.default(`[endTurn] actionState of current player: ${Players.getCurrentActivePlayer().getActionState()}`);
-    if (Players.getCurrentActivePlayer().getActionState() === _playerStates.ACTION_DID_PUTDOWN) {
-        // * Player putdown a card, check if power card
-        const top_card = Deck.getDiscardDeckTopCard();
-        if (top_card.power) {
-            _outputDetailDefault.default(`[endTurn] Card putdown is a power card: ${top_card.power}`);
-            applyPowerEffect(top_card.power);
-        }
-    }
-    if (!hasWinConditionBeenReached()) {
-        // * resolve anything before confirm turn is ended
-        _outputDetailDefault.default(`------------`);
-        onEndTurn();
-    } else _outputDetailDefault.default(`[endTurn] ${Players.getCurrentActivePlayer().getPlayerName()} has won!`);
-};
+document.querySelector("#Player_0 .card_list").addEventListener("mousedown", _onHumanPlayerCardSelectDefault.default);
+document.querySelector("#pickup_deck").addEventListener("mousedown", _handleCardPickupDefault.default);
+// *
+_outputToBoardDefault.default(`The starting card is a ${_managers.Deck.getDiscardDeckTopCard().name}`);
 
-},{"./Managers/managers":"5IueX","./Utilities/loop":"cwOcG","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./Utilities/outputDetail":"cC0a2","./Player/player":"92V2m","./Player/player_states":"g1ajd","./Cards/powers":"9DqYi"}],"5IueX":[function(require,module,exports) {
+},{"./Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./View/outputToBoard":"W6Eqs","./View/updateView":"ilqS8","./Gameplay/Play/onHumanPlayerCardSelect":"hlr0u","./Gameplay/Pickup/handleCardPickup":"flFqQ"}],"5IueX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 // * Export managers through here
-parcelHelpers.export(exports, "GameManager", ()=>_gameJs.GameManager
+parcelHelpers.export(exports, "Game", ()=>_gameJs.Game
 );
-parcelHelpers.export(exports, "DeckManager", ()=>_deckJs.DeckManager
+parcelHelpers.export(exports, "Deck", ()=>_deckJs.Deck
 );
-parcelHelpers.export(exports, "PlayerManager", ()=>_playerJs.PlayerManager
+parcelHelpers.export(exports, "Players", ()=>_playerJs.Players
 );
-parcelHelpers.export(exports, "ViewManager", ()=>_viewJs.ViewManager
+parcelHelpers.export(exports, "View", ()=>_viewJs.View
 );
 var _gameJs = require("./game.js");
 var _deckJs = require("./deck.js");
@@ -695,9 +448,10 @@ var _viewJs = require("./view.js");
 },{"./game.js":"37AZp","./deck.js":"iQ0ND","./player.js":"e3V8h","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./view.js":"fuhyS"}],"37AZp":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "GameManager", ()=>GameManager
+parcelHelpers.export(exports, "Game", ()=>Game
 );
 var _updateObject = require("./../Utilities/updateObject");
+// * Manage the running of the game, linking components
 const GameManager = ()=>{
     const state = {
         mode: "DEBUG",
@@ -726,6 +480,7 @@ const GameManager = ()=>{
         setCurrentGameState
     };
 };
+const Game = GameManager();
 
 },{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e3rXy":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -771,10 +526,10 @@ exports.export = function(dest, destName, get) {
 },{}],"iQ0ND":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "DeckManager", ()=>DeckManager
+parcelHelpers.export(exports, "Deck", ()=>Deck
 );
-var _outputDetail = require("../Utilities/outputDetail");
-var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
+var _debugDetail = require("../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
 var _cards = require("./../Cards/cards");
 var _loop = require("./../Utilities/loop");
 var _loopDefault = parcelHelpers.interopDefault(_loop);
@@ -873,7 +628,7 @@ const DeckManager = ()=>{
         DISCARD_DECK.unshift(card);
     };
     const swapDecks = ()=>{
-        _outputDetailDefault.default(`Refilling Pickup Deck from Discard Deck`);
+        _debugDetailDefault.default(`Refilling Pickup Deck from Discard Deck`);
         // TODO - What if no cards are left?
         // * Move all discarded cards to pickup deck, leaving last discarded card in discard pile
         const top_discard_card = removeCardAtIndexFromDiscardDeck(0);
@@ -907,8 +662,9 @@ const DeckManager = ()=>{
         dealCards
     };
 };
+const Deck = DeckManager();
 
-},{"./../Cards/cards":"7d7DK","./../Utilities/loop":"cwOcG","./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/outputDetail":"cC0a2"}],"7d7DK":[function(require,module,exports) {
+},{"./../Cards/cards":"7d7DK","./../Utilities/loop":"cwOcG","./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/debugDetail":"e4cZo"}],"7d7DK":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "cards", ()=>cards
@@ -1337,21 +1093,21 @@ function loop(array, cb, dir = 1, scope) {
 }
 exports.default = loop;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"cC0a2":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e4cZo":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-exports.default = outputDetail = (detail)=>console.log(detail)
+exports.default = debugDetail = (detail)=>console.log(detail)
 ;
 
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e3V8h":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "PlayerManager", ()=>PlayerManager
+parcelHelpers.export(exports, "Players", ()=>Players
 );
 var _updateObject = require("./../Utilities/updateObject");
 var _player = require("../Player/player");
-var _outputDetail = require("../Utilities/outputDetail");
-var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
+var _debugDetail = require("../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
 var _playerStates = require("../Player/player_states");
 const PlayerManager = ()=>{
     const state = {
@@ -1402,7 +1158,7 @@ const PlayerManager = ()=>{
         current_player.updatePlayState(_playerStates.TO_PLAY);
         // * Get and update new next player if needed
         let next_player = state.player_list[state.next_player_idx];
-        _outputDetailDefault.default(`Current active player is now: ${current_player.getPlayerName()}`);
+        _debugDetailDefault.default(`Current active player is now: ${current_player.getPlayerName()}`);
     };
     const getCurrentActivePlayer = ()=>{
         return state.player_list[state.current_player_idx];
@@ -1438,14 +1194,15 @@ const PlayerManager = ()=>{
         getPlayerList
     };
 };
+const Players = PlayerManager();
 
-},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/outputDetail":"cC0a2","../Player/player_states":"g1ajd"}],"92V2m":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Player/player_states":"g1ajd","../Utilities/debugDetail":"e4cZo"}],"92V2m":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Player", ()=>Player
 );
-var _outputDetail = require("../Utilities/outputDetail");
-var _outputDetailDefault = parcelHelpers.interopDefault(_outputDetail);
+var _debugDetail = require("../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
 var _updateObject = require("./../Utilities/updateObject");
 var _playerStates = require("./player_states");
 const Player = ()=>{
@@ -1459,33 +1216,27 @@ const Player = ()=>{
             effect: _playerStates.EFFECT_NO_EFFECT
         }
     };
+    // * Initialise the player with a config object
     const init = (config)=>{
         _updateObject.updateObject(state, config);
     };
+    // * Add a card to the player deck
     const addCard = (card)=>{
         state.deck.push(card);
     };
+    // * Add cards to the player deck
     const addCards = (cards)=>{
         state.deck = state.deck.concat(cards);
     };
+    // * Remove a card at index
     const removeCardAtIndex = (idx)=>{
         state.deck.splice(idx, 1)[0];
     };
+    // * Remove a number of cards starting at index
     const removeCards = (idx, num_cards)=>{
         state.deck.splice(idx, num_cards);
     };
-    const getPlayerName = ()=>{
-        return state.name;
-    };
-    const getIsHuman = ()=>{
-        return state.is_human;
-    };
-    const getCurrentCards = ()=>{
-        return state.deck;
-    };
-    const getHandSize = ()=>{
-        return state.deck.length;
-    };
+    // * Remove a selected card by value/suit
     const removeCard = ({ value , suit  })=>{
         let cardIdx = state.deck.findIndex((card)=>{
             return card.value == value && card.suit == suit;
@@ -1493,6 +1244,23 @@ const Player = ()=>{
         if (cardIdx < 0) console.error("Selected player card not found");
         return state.deck.splice(cardIdx, 1)[0];
     };
+    // * Get the players name
+    const getPlayerName = ()=>{
+        return state.name;
+    };
+    // * Get is the player human
+    const getIsHuman = ()=>{
+        return state.is_human;
+    };
+    // * Get current cards
+    const getCurrentCards = ()=>{
+        return state.deck;
+    };
+    // * Get current hand size
+    const getHandSize = ()=>{
+        return state.deck.length;
+    };
+    // * Reset the player status
     const resetStatus = ()=>{
         state.status = {
             play_state: _playerStates.IDLE,
@@ -1500,27 +1268,54 @@ const Player = ()=>{
             effect: _playerStates.EFFECT_NO_EFFECT
         };
     };
+    // * Get the full player status
     const getStatus = ()=>{
         return state.status;
     };
+    // * update the play state
     const updatePlayState = (play_state)=>{
-        _outputDetailDefault.default(`${state.name} [state.play_state] is now ${play_state}`);
+        // * Check acceptable state provided
+        if (![
+            _playerStates.IDLE,
+            _playerStates.TO_PLAY,
+            _playerStates.HAS_PLAYED
+        ].includes(play_state)) _debugDetailDefault.default(`${state.name} [state.play_state] provided unacceptable state: ${play_state}`);
         state.status.play_state = play_state;
+        _debugDetailDefault.default(`${state.name} [state.play_state] is now ${play_state}`);
     };
+    // * get the players current play state
     const getPlayState = ()=>{
         return state.status.play_state;
     };
+    // * update the action state
     const updateActionState = (action_state)=>{
-        _outputDetailDefault.default(`${state.name} [state.action] is now ${action_state}`);
+        // * Check acceptable state provided
+        if (![
+            _playerStates.ACTION_DID_PICKUP,
+            _playerStates.ACTION_DID_PUTDOWN,
+            _playerStates.ACTION_NO_ACTION, 
+        ].includes(action_state)) _debugDetailDefault.default(`${state.name} [state.action_state] provided unacceptable state: ${action_state}`);
         state.status.action = action_state;
+        _debugDetailDefault.default(`${state.name} [state.action] is now ${action_state}`);
     };
+    // * get the players action state
     const getActionState = ()=>{
         return state.status.action;
     };
+    // * update the effect state
     const updateEffectState = (effect_state)=>{
-        _outputDetailDefault.default(`${state.name} [state.effect] is now ${effect_state}`);
+        // * Check acceptable state provided
+        if (![
+            _playerStates.EFFECT_MUST_PICK_2,
+            _playerStates.EFFECT_MUST_PICK_7,
+            _playerStates.EFFECT_MUST_MISS_TURN,
+            _playerStates.EFFECT_ANOTHER_TURN,
+            _playerStates.EFFECT_NO_EFFECT, 
+        ].includes(effect_state)) _debugDetailDefault.default(`${state.name} [state.effect_state] provided unacceptable state: ${effect_state}`);
         state.status.effect = effect_state;
+        _debugDetailDefault.default(`${state.name} [state.effect] is now ${effect_state}`);
     };
+    // * get the players current effect state
     const getEffectState = ()=>{
         return state.status.effect;
     };
@@ -1546,7 +1341,7 @@ const Player = ()=>{
     };
 };
 
-},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./player_states":"g1ajd","../Utilities/outputDetail":"cC0a2"}],"g1ajd":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./player_states":"g1ajd","../Utilities/debugDetail":"e4cZo"}],"g1ajd":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "IDLE", ()=>IDLE
@@ -1586,27 +1381,20 @@ const EFFECT_NO_EFFECT = "EFFECT_NO_EFFECT";
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"fuhyS":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
-parcelHelpers.export(exports, "ViewManager", ()=>ViewManager
+parcelHelpers.export(exports, "View", ()=>View
 );
 var _updateObject = require("./../Utilities/updateObject");
 const ViewManager = ()=>{
     const state = {
         pickup_deck_el: null,
         discard_deck_el: null,
-        player_el_data: {
-        },
+        updates_board_el: null,
         card_w: 59,
         card_h: 90
     };
     const init = (config = {
     })=>{
         _updateObject.updateObject(state, config);
-    };
-    const addPlayerHTML = (player_name, el)=>{
-        state.player_el_data[player_name] = el;
-    };
-    const getPlayerHTML = (player_name)=>{
-        return state.player_el_data[player_name];
     };
     const createCardHTML = (card, is_facing)=>{
         return `<img class="${is_facing ? "face_up" : "face_down"}" style="background-position: -${card.l * state.card_w}px -${card.t * state.card_h}px;"/>`;
@@ -1620,17 +1408,479 @@ const ViewManager = ()=>{
     const getDiscardDeck = ()=>{
         return state.discard_deck_el;
     };
+    const getGameUpdateBoard = ()=>{
+        return state.updates_board_el;
+    };
     return {
         init,
-        addPlayerHTML,
-        getPlayerHTML,
         createListedCardHTML,
         createCardHTML,
         getPickupDeck,
-        getDiscardDeck
+        getDiscardDeck,
+        getGameUpdateBoard
     };
 };
+const View = ViewManager();
 
-},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}]},["6cdEz","23obh"], "23obh", "parcelRequirefe86")
+},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"W6Eqs":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../Managers/managers");
+exports.default = outputToBoard = (message)=>{
+    const update_board = _managers.View.getGameUpdateBoard();
+    update_board.insertAdjacentHTML("beforeend", `<p>${message}</p>`);
+    update_board.scrollTop = update_board.scrollHeight;
+};
+
+},{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"ilqS8":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _drawPlayerDecks = require("./drawPlayerDecks");
+var _drawPlayerDecksDefault = parcelHelpers.interopDefault(_drawPlayerDecks);
+var _drawDiscardDeck = require("./drawDiscardDeck");
+var _drawDiscardDeckDefault = parcelHelpers.interopDefault(_drawDiscardDeck);
+exports.default = updateView = ()=>{
+    // * Draw player decks
+    _drawPlayerDecksDefault.default();
+    // * Draw discard decks
+    _drawDiscardDeckDefault.default();
+};
+
+},{"./drawPlayerDecks":"elYcq","./drawDiscardDeck":"1JqOF","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"elYcq":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _loop = require("./../Utilities/loop");
+var _loopDefault = parcelHelpers.interopDefault(_loop);
+var _managers = require("./../Managers/managers");
+exports.default = drawPlayerDecks = ()=>{
+    _loopDefault.default(_managers.Players.getPlayerList(), (player)=>{
+        const deck = player.getCurrentCards();
+        // * get deck element
+        const deck_el = document.getElementById(player.getPlayerName()).querySelector('.card_list');
+        // * remove HTML
+        deck_el.innerHTML = "";
+        _loopDefault.default(deck, (card)=>{
+            deck_el.insertAdjacentHTML("beforeend", _managers.View.createListedCardHTML(card, true));
+        });
+    });
+};
+
+},{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./../Utilities/loop":"cwOcG"}],"1JqOF":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../Managers/managers");
+exports.default = drawDiscardDeck = ()=>{
+    let card = _managers.Deck.getDiscardDeck()[0];
+    _managers.View.getDiscardDeck().innerHTML = _managers.View.createCardHTML(card, true);
+};
+
+},{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"hlr0u":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _managers = require("./../../Managers/managers");
+var _endTurn = require("../End/endTurn");
+var _endTurnDefault = parcelHelpers.interopDefault(_endTurn);
+var _playCard = require("./playCard");
+var _playCardDefault = parcelHelpers.interopDefault(_playCard);
+exports.default = onHumanPlayerCardSelect = (event)=>{
+    _debugDetailDefault.default(`[onHumanPlayerCardSelect]`);
+    // * check that the current player is the human player, or the user is selecting out of turn
+    if (!_managers.Players.getCurrentActivePlayer().getIsHuman()) {
+        _debugDetailDefault.default(`[onHumanPlayerCardSelect] Human player not currently active`);
+        return;
+    }
+    // * get selection target
+    const selection = event.target.parentNode || event.srcElement.parentNode;
+    // * make sure a card was clicked
+    if (selection.className == "card") {
+        // * get card reference
+        const value = selection.getAttribute('data-v');
+        const suit = selection.getAttribute('data-s');
+        const valid_play = _playCardDefault.default({
+            value,
+            suit
+        });
+        if (valid_play) _endTurnDefault.default();
+    }
+// * otherwise do nothing
+};
+
+},{"../../Utilities/debugDetail":"e4cZo","./../../Managers/managers":"5IueX","../End/endTurn":"fM3CA","./playCard":"cWdcu","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"fM3CA":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../../Managers/managers");
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _outputToBoard = require("./../../View/outputToBoard");
+var _outputToBoardDefault = parcelHelpers.interopDefault(_outputToBoard);
+var _hasWinConditionBeenReached = require("./hasWinConditionBeenReached");
+var _hasWinConditionBeenReachedDefault = parcelHelpers.interopDefault(_hasWinConditionBeenReached);
+var _applyPowerEffect = require("./../Powers/applyPowerEffect");
+var _applyPowerEffectDefault = parcelHelpers.interopDefault(_applyPowerEffect);
+var _resolvePowerEffectState = require("./../Powers/resolvePowerEffectState");
+var _resolvePowerEffectStateDefault = parcelHelpers.interopDefault(_resolvePowerEffectState);
+var _onEndTurn = require("./onEndTurn");
+var _onEndTurnDefault = parcelHelpers.interopDefault(_onEndTurn);
+var _playerStates = require("./../../Player/player_states");
+exports.default = endTurn = ()=>{
+    // * resolve anything before confirm turn is ended
+    const current_player = _managers.Players.getCurrentActivePlayer();
+    current_player.updatePlayState(_playerStates.HAS_PLAYED);
+    _debugDetailDefault.default(`[endTurn] Ending turn...`);
+    _debugDetailDefault.default(`[endTurn] actionState of current player: ${current_player.getActionState()}`);
+    // * If player put a card down, then apply power if required
+    if (current_player.getActionState() === _playerStates.ACTION_DID_PUTDOWN) {
+        // * Player putdown a card, check if power card
+        const top_card = Deck.getDiscardDeckTopCard();
+        if (top_card.power) {
+            _debugDetailDefault.default(`[endTurn] Card putdown is a power card: ${top_card.power}`);
+            _outputToBoardDefault.default(`It's a power card!`);
+            // * Apply power effect
+            _applyPowerEffectDefault.default(top_card.power);
+            // * check if current player affected by the power card
+            // TODO - too closely linked to the Have another go power - needs to be handled elsewhere
+            if (current_player.getEffectState() !== _playerStates.EFFECT_NO_EFFECT) {
+                // * resolve power effect
+                _resolvePowerEffectStateDefault.default(current_player, current_player.getEffectState());
+                return;
+            }
+        }
+    }
+    // * check if win condition has been reached
+    if (!_hasWinConditionBeenReachedDefault.default()) {
+        _debugDetailDefault.default(`------------`);
+        _onEndTurnDefault.default();
+    } else {
+        // * Game has been won, end
+        _outputToBoardDefault.default(`${_managers.Players.getCurrentActivePlayer().getPlayerName()} is the winner!`);
+        _debugDetailDefault.default(`[endTurn] ${_managers.Players.getCurrentActivePlayer().getPlayerName()} has won!`);
+    }
+};
+
+},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","./../../View/outputToBoard":"W6Eqs","./hasWinConditionBeenReached":"k2mNQ","./../Powers/applyPowerEffect":"b1tz2","./../Powers/resolvePowerEffectState":"f9qHk","./../../Player/player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./onEndTurn":"jRj6l"}],"k2mNQ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("../../Managers/managers");
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+exports.default = hasWinConditionBeenReached = ()=>{
+    _debugDetailDefault.default(`[hasWinConditionBeenReached] Checking win condition`);
+    // * Current player has won if they have no cards left
+    let num_cards_remaining = _managers.Players.getCurrentActivePlayer().getHandSize();
+    _debugDetailDefault.default(`[hasWinConditionBeenReached] Player has ${num_cards_remaining} cards remaining`);
+    // * To win there has to be no cards remaining
+    // TODO - last placed card should not be a power card and player needs to pick up
+    return num_cards_remaining === 0;
+};
+
+},{"../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"b1tz2":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _powers = require("./../../Cards/powers");
+var _playerStates = require("./../../Player/player_states");
+var _outputToBoard = require("../../View/outputToBoard");
+var _outputToBoardDefault = parcelHelpers.interopDefault(_outputToBoard);
+var _managers = require("./../../Managers/managers");
+exports.default = applyPowerEffect = (power)=>{
+    const current_active_player = _managers.Players.getCurrentActivePlayer();
+    const current_next_player = _managers.Players.getCurrentNextPlayer();
+    switch(power){
+        case _powers.CHANGE_DIRECTION:
+            // * Change play direction
+            _outputToBoardDefault.default(`Direction of play is reversed! [TODO]`);
+            break;
+        case _powers.CHANGE_SUIT:
+            // * Change playable suit
+            _outputToBoardDefault.default(`New suit chosen! [TODO]`);
+            break;
+        case _powers.ANOTHER_TURN:
+            // * Player has another go
+            _outputToBoardDefault.default(`${current_active_player.getPlayerName()} to take another turn!`);
+            current_active_player.updateEffectState(_playerStates.EFFECT_ANOTHER_TURN);
+            break;
+        case _powers.MISS_TURN:
+            // * Next player misses turn
+            _outputToBoardDefault.default(`${current_next_player.getPlayerName()} to miss a turn!`);
+            current_next_player.updateEffectState(_playerStates.EFFECT_MUST_MISS_TURN);
+            break;
+        case _powers.PICKUP_2:
+            // * Next player must pickup 2
+            _outputToBoardDefault.default(`${current_next_player.getPlayerName()} must pick up 2 cards!`);
+            current_next_player.updateEffectState(_playerStates.EFFECT_MUST_PICK_2);
+            break;
+        case _powers.PICKUP_7:
+            // * Next player must pickup 7
+            _outputToBoardDefault.default(`${current_next_player.getPlayerName()} must pick up 7 cards!`);
+            current_next_player.updateEffectState(_playerStates.EFFECT_MUST_PICK_7);
+            break;
+        default:
+            debugDetail(`[applyPowerEffect] Unknown power applied! ${power}`);
+    }
+};
+
+},{"./../../Cards/powers":"9DqYi","./../../Player/player_states":"g1ajd","../../View/outputToBoard":"W6Eqs","./../../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"f9qHk":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _playerStates = require("./../../Player/player_states");
+var _managers = require("./../../Managers/managers");
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _handleTurnBegin = require("../Begin/handleTurnBegin");
+var _handleTurnBeginDefault = parcelHelpers.interopDefault(_handleTurnBegin);
+var _endTurn = require("../End/endTurn");
+var _endTurnDefault = parcelHelpers.interopDefault(_endTurn);
+var _pickupCardFromDeck = require("../Pickup/pickupCardFromDeck");
+var _pickupCardFromDeckDefault = parcelHelpers.interopDefault(_pickupCardFromDeck);
+exports.default = resolvePowerEffectState = (currentPlayer, effect_state)=>{
+    const current_active_player = _managers.Players.getCurrentActivePlayer();
+    switch(effect_state){
+        case _playerStates.EFFECT_ANOTHER_TURN:
+            // * Player has another go
+            _debugDetailDefault.default(`[resolvePowerEffectState] Player taking another turn [TODO]`);
+            // * reset status
+            current_active_player.resetStatus();
+            current_active_player.updatePlayState(_playerStates.TO_PLAY);
+            _handleTurnBeginDefault.default();
+            break;
+        case _playerStates.EFFECT_MUST_MISS_TURN:
+            // * go straight to end turn
+            _debugDetailDefault.default(`[resolvePowerEffectState] Missing Turn`);
+            _endTurnDefault.default();
+            break;
+        case _playerStates.EFFECT_MUST_PICK_2:
+            // * Next player must pickup 2 then end turn
+            _debugDetailDefault.default(`[resolvePowerEffectState] Picking up 2 cards`);
+            for(let c = 0; c < 2; c++)_pickupCardFromDeckDefault.default();
+            _endTurnDefault.default();
+            break;
+        case _playerStates.EFFECT_MUST_PICK_7:
+            // * Next player must pickup 7 then end turn
+            for(let c1 = 0; c1 < 7; c1++)_pickupCardFromDeckDefault.default();
+            _endTurnDefault.default();
+            break;
+        default:
+            _debugDetailDefault.default(`[resolvePowerEffectState] Unknown effect state applied! ${effect_state}`);
+    }
+};
+
+},{"./../../Player/player_states":"g1ajd","./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","../Begin/handleTurnBegin":"ichSI","../End/endTurn":"fM3CA","../Pickup/pickupCardFromDeck":"6OXTp","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"ichSI":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _managers = require("./../../Managers/managers");
+var _resolvePowerEffectState = require("../Powers/resolvePowerEffectState");
+var _resolvePowerEffectStateDefault = parcelHelpers.interopDefault(_resolvePowerEffectState);
+var _chooseAIPlayerActionChoice = require("../Begin/chooseAIPlayerActionChoice");
+var _chooseAIPlayerActionChoiceDefault = parcelHelpers.interopDefault(_chooseAIPlayerActionChoice);
+var _playerStates = require("./../../Player/player_states");
+exports.default = handleTurnBegin = ()=>{
+    // * Resolve any effects
+    let current_active_player = _managers.Players.getCurrentActivePlayer();
+    if (current_active_player.getEffectState() !== _playerStates.EFFECT_NO_EFFECT) {
+        _debugDetailDefault.default(`Current player is affected by ${current_active_player.getEffectState()}`);
+        _resolvePowerEffectStateDefault.default(current_active_player, current_active_player.getEffectState());
+    } else {
+        // * no effect in play, continue as normal
+        outputToBoard(`${current_active_player.getPlayerName()} to play...`);
+        // * if AI
+        if (!current_active_player.getIsHuman()) {
+            _debugDetailDefault.default(`[chooseAIPlayerActionChoice] Player is thinking...`);
+            // * simulate player thinking before choice (effectively slow down game)
+            window.setTimeout(_chooseAIPlayerActionChoiceDefault.default, 2000);
+        }
+    }
+};
+
+},{"../../Utilities/debugDetail":"e4cZo","./../../Managers/managers":"5IueX","../Powers/resolvePowerEffectState":"f9qHk","../Begin/chooseAIPlayerActionChoice":"1NatD","./../../Player/player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"1NatD":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _checkLegalPlayableMove = require("../Play/checkLegalPlayableMove");
+var _checkLegalPlayableMoveDefault = parcelHelpers.interopDefault(_checkLegalPlayableMove);
+var _onAIPlayerCardSelect = require("../Play/onAIPlayerCardSelect");
+var _onAIPlayerCardSelectDefault = parcelHelpers.interopDefault(_onAIPlayerCardSelect);
+var _handleCardPickup = require("../Pickup/handleCardPickup");
+var _handleCardPickupDefault = parcelHelpers.interopDefault(_handleCardPickup);
+exports.default = chooseAIPlayerActionChoice = ()=>{
+    // * Get current AI player
+    const current_AI_player = Players.getCurrentActivePlayer();
+    // * get players current hand
+    const current_hand = current_AI_player.getCurrentCards();
+    // * get legal playable cards from hand
+    const playable_cards = current_hand.filter((card)=>{
+        return _checkLegalPlayableMoveDefault.default(card);
+    });
+    _debugDetailDefault.default(`[chooseAIPlayerActionChoice] Number of playable cards: ${playable_cards.length}`);
+    // * if playable cards
+    if (playable_cards.length && Math.random() >= 0.3) {
+        // * more weighting to putting down cards than picking them up
+        // * choice based on random value
+        // * play a card
+        _debugDetailDefault.default(`[chooseAIPlayerActionChoice] Player has chosen to play a card`);
+        _onAIPlayerCardSelectDefault.default(playable_cards);
+    } else {
+        // * no playable cards, so has to pickup
+        _debugDetailDefault.default(`Player must pickup`);
+        _handleCardPickupDefault.default();
+    }
+};
+
+},{"../../Utilities/debugDetail":"e4cZo","../Play/checkLegalPlayableMove":"ktroz","../Play/onAIPlayerCardSelect":"1W5Oc","../Pickup/handleCardPickup":"flFqQ","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"ktroz":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../../Managers/managers");
+exports.default = checkLegalPlayableMove = ({ value , suit  })=>{
+    // * get current card attempting to play upon
+    const current_top_card = _managers.Deck.getDiscardDeckTopCard();
+    // * playable card must be of the same suit or of the same value
+    return value == current_top_card.value || suit == current_top_card.suit;
+};
+
+},{"./../../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"1W5Oc":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _playCard = require("./playCard");
+var _playCardDefault = parcelHelpers.interopDefault(_playCard);
+var _endTurn = require("../End/endTurn");
+var _endTurnDefault = parcelHelpers.interopDefault(_endTurn);
+exports.default = onAIPlayerCardSelect = (playable_cards)=>{
+    // * AI Player select card from hand
+    _debugDetailDefault.default(`[onAIPlayerCardSelect] Playing a card from hand`);
+    // * Check if any of the cards are a power card
+    let available_power_cards = playable_cards.filter(function(card) {
+        return typeof card.power !== "undefined";
+    });
+    // * index of card choice
+    let playing_card = null;
+    // * if power cards available, we want to be more likely to selecting one of them
+    if (available_power_cards.length && Math.random() > 0.4) // * Select from the power card list
+    playing_card = available_power_cards[Math.floor(Math.random() * available_power_cards.length)];
+    else // * select any random card
+    playing_card = playable_cards[Math.floor(Math.random() * playable_cards.length)];
+    _playCardDefault.default({
+        value: playing_card.value,
+        suit: playing_card.suit
+    });
+    _endTurnDefault.default();
+};
+
+},{"../../Utilities/debugDetail":"e4cZo","./playCard":"cWdcu","../End/endTurn":"fM3CA","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"cWdcu":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _outputToBoard = require("../../View/outputToBoard");
+var _outputToBoardDefault = parcelHelpers.interopDefault(_outputToBoard);
+var _checkLegalPlayableMove = require("./checkLegalPlayableMove");
+var _checkLegalPlayableMoveDefault = parcelHelpers.interopDefault(_checkLegalPlayableMove);
+var _handlePlayCard = require("./handlePlayCard");
+var _handlePlayCardDefault = parcelHelpers.interopDefault(_handlePlayCard);
+exports.default = playCard = ({ value , suit  })=>{
+    _debugDetailDefault.default(`[handlePlayCard] Attempting to play`);
+    // * Check whether card can be played
+    if (!_checkLegalPlayableMoveDefault.default({
+        value,
+        suit
+    })) {
+        _debugDetailDefault.default(`[handlePlayCard] Card not playable`);
+        _outputToBoardDefault.default(`That card isn't playable!`);
+        // * card not playable
+        return false;
+    }
+    // * card is playable, so play it
+    _handlePlayCardDefault.default({
+        value,
+        suit
+    });
+    // * card is playable
+    return true;
+};
+
+},{"../../Utilities/debugDetail":"e4cZo","../../View/outputToBoard":"W6Eqs","./checkLegalPlayableMove":"ktroz","./handlePlayCard":"eEI12","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"eEI12":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../../Managers/managers");
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _playerStates = require("./../../Player/player_states");
+exports.default = handlePlayCard = ({ value , suit  })=>{
+    // * get card from player hand
+    let current_player = _managers.Players.getCurrentActivePlayer();
+    const card = current_player.removeCard({
+        value,
+        suit
+    });
+    _debugDetailDefault.default(`[playCard] Playing card: ${card.name}`);
+    // * place card to discard deck
+    _managers.Deck.insertToTopOfDiscardDeck(card);
+    current_player.updateActionState(_playerStates.ACTION_DID_PUTDOWN);
+    outputToBoard(`${current_player.getPlayerName()} has played the ${card.name}`);
+    updateView();
+};
+
+},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","./../../Player/player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"flFqQ":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _pickupCardFromDeck = require("./pickupCardFromDeck");
+var _pickupCardFromDeckDefault = parcelHelpers.interopDefault(_pickupCardFromDeck);
+var _endTurn = require("../End/endTurn");
+var _endTurnDefault = parcelHelpers.interopDefault(_endTurn);
+exports.default = handleCardPickup = (e)=>{
+    _pickupCardFromDeckDefault.default();
+    _endTurnDefault.default();
+};
+
+},{"./pickupCardFromDeck":"6OXTp","../End/endTurn":"fM3CA","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"6OXTp":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../../Managers/managers");
+var _updateView = require("../../View/updateView");
+var _updateViewDefault = parcelHelpers.interopDefault(_updateView);
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _outputToBoard = require("../../View/outputToBoard");
+var _outputToBoardDefault = parcelHelpers.interopDefault(_outputToBoard);
+var _playerStates = require("./../../Player/player_states");
+exports.default = pickupCardFromDeck = ()=>{
+    _debugDetailDefault.default(`[pickupCardFromDeck] Picking up card`);
+    // * get current player attempting pickup
+    let current_player = _managers.Players.getCurrentActivePlayer();
+    // * get pickup deck
+    let top_card = _managers.Deck.removeCardByIndexFromPickupDeck(0);
+    // * add picked up card to player deck
+    current_player.addCard(top_card);
+    _debugDetailDefault.default(`[pickupCardFromDeck] Picked up card: ${top_card.name}`);
+    // * if deck is now empty, then swap decks
+    if (_managers.Deck.getPickupDeckSize() <= 0) _managers.Deck.swapDecks();
+    // * Update the players action state
+    current_player.updateActionState(_playerStates.ACTION_DID_PICKUP);
+    _outputToBoardDefault.default(`${current_player.getPlayerName()} has picked up`);
+    // * redraw the view
+    _updateViewDefault.default();
+};
+
+},{"./../../Managers/managers":"5IueX","../../View/updateView":"ilqS8","../../Utilities/debugDetail":"e4cZo","../../View/outputToBoard":"W6Eqs","./../../Player/player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"jRj6l":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../../Managers/managers");
+var _debugDetail = require("../../Utilities/debugDetail");
+var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
+var _handleTurnBegin = require("../Begin/handleTurnBegin");
+var _handleTurnBeginDefault = parcelHelpers.interopDefault(_handleTurnBegin);
+exports.default = onEndTurn = ()=>{
+    // * update current players
+    _managers.Players.setNextActivePlayer();
+    _debugDetailDefault.default(`[chooseAIPlayerActionChoice] It is now ${_managers.Players.getCurrentActivePlayer().getPlayerName()}s turn`);
+    // * begin next turn
+    _handleTurnBeginDefault.default();
+};
+
+},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","../Begin/handleTurnBegin":"ichSI","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}]},["6cdEz","23obh"], "23obh", "parcelRequirefe86")
 
 //# sourceMappingURL=index.227406fc.js.map

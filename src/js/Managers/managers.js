@@ -1,17 +1,17 @@
 // * Export managers through here
 
 export {
-    GameManager
+    Game
 } from "./game.js";
 
 export {
-    DeckManager
+    Deck
 } from "./deck.js";
 
 export {
-    PlayerManager
+    Players
 } from "./player.js";
 
 export {
-    ViewManager
+    View
 } from "./view.js";

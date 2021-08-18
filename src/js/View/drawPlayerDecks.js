@@ -16,7 +16,7 @@ export default drawPlayerDecks = () => {
         loop(deck, (card) => {
             deck_el.insertAdjacentHTML(
                 "beforeend",
-                View.createListedCardHTML(card, true)
+                View.createListedCardHTML(card, player.getIsHuman())
             );
         });
     });

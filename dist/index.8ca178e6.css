@@ -143,10 +143,42 @@ body {
     background-color: #a3530d;
     overflow-y: scroll;
 }
+#game_instructions {
+    position: absolute;
+    z-index: 100;
+    border:10px ridge #a3530d;
+    background-color: #a3530d;
+    padding: 15px;
+    top: 50%;
+    left: 50%;
+    transform: translate3d(-50%, -50%, 0);
+    width: 450px;
+    text-align: center;
+}
+#game_instructions p,
+#game_instructions li,
 #game_updates p {
     font-size: 15px;
     color: #fff;
     font-family: 'Courier New', Courier, monospace;
+}
+#game_instructions p + p,
+#game_instructions li + li {
+    margin-top: 8px;
+}
+#game_instructions ul {
+    margin: 8px auto 16px;
+    list-style-type: none;
+}
+#game_instructions button {
+    appearance: none;
+    font-size: 15px;
+    color: #000;
+    background-color: rgb(233, 233, 233);
+    border: 2px ridge rgb(233, 233, 233);
+    padding: 8px 16px;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
 }
 .player {
     position:absolute;

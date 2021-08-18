@@ -470,62 +470,68 @@ window.Game = _managers.Game;
 window.Deck = _managers.Deck;
 window.Players = _managers.Players;
 window.View = _managers.View;
-// * ------ Initialisation ------- * //
-// * Initialise Game World
-_managers.Game.init({
+const startGame = ()=>{
+    // * ------ Initialisation ------- * //
+    // * Initialise Game World
+    _managers.Game.init({
+    });
+    // * Initialise Players
+    _managers.Players.init({
+        num_players: 4
+    });
+    // * Initialise View
+    _managers.View.init({
+        pickup_deck_el: document.getElementById("pickup_deck"),
+        discard_deck_el: document.getElementById("discard_deck"),
+        updates_board_el: document.getElementById("game_updates")
+    });
+    // * initialise the deck
+    _managers.Deck.init({
+    });
+    // * ------ Preparation ------- * //
+    // * Create the players
+    _managers.Players.createPlayers([
+        {
+            el: document.getElementById("Player_0"),
+            is_human: true,
+            name: "Human Player"
+        },
+        {
+            el: document.getElementById("Player_1"),
+            is_human: false,
+            name: "AI Player 1"
+        },
+        {
+            el: document.getElementById("Player_2"),
+            is_human: false,
+            name: "AI Player 2"
+        },
+        {
+            el: document.getElementById("Player_3"),
+            is_human: false,
+            name: "AI Player 3"
+        }, 
+    ]);
+    // * prepare the deck
+    _managers.Deck.prepareDeck();
+    // * deal cards to each player
+    _managers.Deck.dealCards(_managers.Players.getPlayerList());
+    // * ------ Start Play ------- * //
+    // * Do initial draw
+    _updateViewDefault.default();
+    // * Assign interactions to view
+    document.querySelector("#pickup_deck").addEventListener("mousedown", _handleCardPickupDefault.default);
+    const human_player = _managers.Players.getPlayerList().find(function(player) {
+        return player.getIsHuman();
+    });
+    human_player.getPlayerEl().querySelector(".card_list").addEventListener("mousedown", _onHumanPlayerCardSelectDefault.default);
+    // *
+    _outputToBoardDefault.default(`The starting card is a ${_managers.Deck.getDiscardDeckTopCard().name}`);
+};
+document.querySelector("#game_instructions button").addEventListener("click", ()=>{
+    document.querySelector("#game_instructions").remove();
+    startGame();
 });
-// * Initialise Players
-_managers.Players.init({
-    num_players: 4
-});
-// * Initialise View
-_managers.View.init({
-    pickup_deck_el: document.getElementById("pickup_deck"),
-    discard_deck_el: document.getElementById("discard_deck"),
-    updates_board_el: document.getElementById("game_updates")
-});
-// * initialise the deck
-_managers.Deck.init({
-});
-// * ------ Preparation ------- * //
-// * Create the players
-_managers.Players.createPlayers([
-    {
-        el: document.getElementById("Player_0"),
-        is_human: true,
-        name: "Human Player"
-    },
-    {
-        el: document.getElementById("Player_1"),
-        is_human: false,
-        name: "AI Player 1"
-    },
-    {
-        el: document.getElementById("Player_2"),
-        is_human: false,
-        name: "AI Player 2"
-    },
-    {
-        el: document.getElementById("Player_3"),
-        is_human: false,
-        name: "AI Player 3"
-    }, 
-]);
-// * prepare the deck
-_managers.Deck.prepareDeck();
-// * deal cards to each player
-_managers.Deck.dealCards(_managers.Players.getPlayerList());
-// * ------ Start Play ------- * //
-// * Do initial draw
-_updateViewDefault.default();
-// * Assign interactions to view
-document.querySelector("#pickup_deck").addEventListener("mousedown", _handleCardPickupDefault.default);
-const human_player = _managers.Players.getPlayerList().find(function(player) {
-    return player.getIsHuman();
-});
-human_player.getPlayerEl().querySelector(".card_list").addEventListener("mousedown", _onHumanPlayerCardSelectDefault.default);
-// *
-_outputToBoardDefault.default(`The starting card is a ${_managers.Deck.getDiscardDeckTopCard().name}`);
 
 },{"./View/updateView":"ilqS8","./View/outputToBoard":"W6Eqs","./Gameplay/Play/onHumanPlayerCardSelect":"hlr0u","./Gameplay/Pickup/handleCardPickup":"flFqQ","./Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"ilqS8":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
@@ -555,7 +561,7 @@ exports.default = drawPlayerDecks = ()=>{
         // * remove HTML
         deck_el.innerHTML = "";
         _loopDefault.default(deck, (card)=>{
-            deck_el.insertAdjacentHTML("beforeend", _managers.View.createListedCardHTML(card, true));
+            deck_el.insertAdjacentHTML("beforeend", _managers.View.createListedCardHTML(card, player.getIsHuman()));
         });
     });
 };

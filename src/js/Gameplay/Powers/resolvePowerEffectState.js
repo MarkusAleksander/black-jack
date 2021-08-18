@@ -6,7 +6,7 @@ import endTurn from "../End/endTurn";
 import pickupCardFromDeck from "../Pickup/pickupCardFromDeck";
 
 // * Resolve the power effect in place
-export default resolvePowerEffectState = (currentPlayer, effect_state) => {
+const resolvePowerEffectState = (currentPlayer, effect_state) => {
 
     const current_active_player = Players.getCurrentActivePlayer();
 
@@ -52,3 +52,5 @@ export default resolvePowerEffectState = (currentPlayer, effect_state) => {
             debugDetail(`[resolvePowerEffectState] Unknown effect state applied! ${effect_state}`);
     }
 }
+
+export default resolvePowerEffectState;

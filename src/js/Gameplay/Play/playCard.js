@@ -4,7 +4,7 @@ import checkLegalPlayableMove from "./checkLegalPlayableMove";
 import handlePlayCard from "./handlePlayCard";
 
 // * Attempt to play a card
-export default playCard = ({ value, suit }) => {
+const playCard = ({ value, suit }) => {
 
     debugDetail(`[handlePlayCard] Attempting to play`);
 
@@ -23,3 +23,5 @@ export default playCard = ({ value, suit }) => {
     // * card is playable
     return true;
 }
+
+export default playCard;

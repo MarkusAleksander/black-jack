@@ -4,7 +4,7 @@ import endTurn from "../End/endTurn";
 import playCard from "./playCard";
 
 // * Define Human Player Interaction
-export default onHumanPlayerCardSelect = (event) => {
+const onHumanPlayerCardSelect = (event) => {
 
     debugDetail(`[onHumanPlayerCardSelect]`);
 
@@ -32,3 +32,5 @@ export default onHumanPlayerCardSelect = (event) => {
 
     // * otherwise do nothing
 }
+
+export default onHumanPlayerCardSelect;

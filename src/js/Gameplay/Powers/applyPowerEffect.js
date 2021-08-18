@@ -4,7 +4,7 @@ import outputToBoard from "../../View/outputToBoard";
 import { Players } from "./../../Managers/managers";
 
 // * Apply power effects from power card
-export default applyPowerEffect = (power) => {
+const applyPowerEffect = (power) => {
 
     const current_active_player = Players.getCurrentActivePlayer();
     const current_next_player = Players.getCurrentNextPlayer();
@@ -58,3 +58,5 @@ export default applyPowerEffect = (power) => {
             debugDetail(`[applyPowerEffect] Unknown power applied! ${power}`);
     }
 }
+
+export default applyPowerEffect;

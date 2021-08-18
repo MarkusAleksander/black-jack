@@ -3,7 +3,7 @@ import playCard from "./playCard";
 import endTurn from "../End/endTurn";
 
 // * Define AI Player Interactions
-export default onAIPlayerCardSelect = (playable_cards) => {
+const onAIPlayerCardSelect = (playable_cards) => {
 
     // * AI Player select card from hand
     debugDetail(`[onAIPlayerCardSelect] Playing a card from hand`);
@@ -36,3 +36,5 @@ export default onAIPlayerCardSelect = (playable_cards) => {
 
     endTurn();
 }
+
+export default onAIPlayerCardSelect;

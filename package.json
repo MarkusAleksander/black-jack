@@ -2,7 +2,6 @@
   "name": "black-jack",
   "version": "1.0.0",
   "description": "An interactive card game",
-  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "parcel serve ./src/index.html",

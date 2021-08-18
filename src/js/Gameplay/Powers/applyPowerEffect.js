@@ -13,8 +13,9 @@ export default applyPowerEffect = (power) => {
         case POWERS.CHANGE_DIRECTION:
 
             // * Change play direction
-            outputToBoard(`Direction of play is reversed! [TODO]`);
-            // TODO
+            outputToBoard(`Direction of play is reversed!`);
+            Players.changePlayDirection();
+
             break;
 
         case POWERS.CHANGE_SUIT:

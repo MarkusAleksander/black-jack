@@ -8,9 +8,7 @@ export default drawPlayerDecks = () => {
         const deck = player.getCurrentCards();
 
         // * get deck element
-        const deck_el = document.getElementById(
-            player.getPlayerName()
-        ).querySelector('.card_list');
+        const deck_el = player.getPlayerEl().querySelector('.card_list');
 
         // * remove HTML
         deck_el.innerHTML = "";

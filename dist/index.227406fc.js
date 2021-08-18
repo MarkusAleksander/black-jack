@@ -414,7 +414,28 @@ _managers.Deck.init({
 });
 // * ------ Preparation ------- * //
 // * Create the players
-_managers.Players.createPlayers();
+_managers.Players.createPlayers([
+    {
+        el: document.getElementById("Player_0"),
+        is_human: true,
+        name: "Human Player"
+    },
+    {
+        el: document.getElementById("Player_1"),
+        is_human: false,
+        name: "AI Player 1"
+    },
+    {
+        el: document.getElementById("Player_2"),
+        is_human: false,
+        name: "AI Player 2"
+    },
+    {
+        el: document.getElementById("Player_3"),
+        is_human: false,
+        name: "AI Player 3"
+    }, 
+]);
 // * prepare the deck
 _managers.Deck.prepareDeck();
 // * deal cards to each player
@@ -423,8 +444,11 @@ _managers.Deck.dealCards(_managers.Players.getPlayerList());
 // * Do initial draw
 _updateViewDefault.default();
 // * Assign interactions to view
-document.querySelector("#Player_0 .card_list").addEventListener("mousedown", _onHumanPlayerCardSelectDefault.default);
 document.querySelector("#pickup_deck").addEventListener("mousedown", _handleCardPickupDefault.default);
+const human_player = _managers.Players.getPlayerList().find(function(player) {
+    return player.getIsHuman();
+});
+human_player.getPlayerEl().querySelector(".card_list").addEventListener("mousedown", _onHumanPlayerCardSelectDefault.default);
 // *
 _outputToBoardDefault.default(`The starting card is a ${_managers.Deck.getDiscardDeckTopCard().name}`);
 
@@ -1109,44 +1133,55 @@ var _player = require("../Player/player");
 var _debugDetail = require("../Utilities/debugDetail");
 var _debugDetailDefault = parcelHelpers.interopDefault(_debugDetail);
 var _playerStates = require("../Player/player_states");
+var _loop = require("../Utilities/loop");
+var _loopDefault = parcelHelpers.interopDefault(_loop);
 const PlayerManager = ()=>{
     const state = {
         num_players: 4,
         player_list: [],
         current_player_idx: 0,
         previous_player_idx: -1,
-        next_player_idx: 0
+        next_player_idx: 0,
+        play_direction: 1
     };
     const init = (config)=>{
         _updateObject.updateObject(state, config);
         state.next_player_idx = state.current_player_idx + 1;
     };
-    const createPlayers = ()=>{
-        // * create human player
-        let human = _player.Player();
-        human.init({
-            is_human: true,
-            name: "Player_0"
-        });
-        state.player_list.push(human);
-        for(let i = 1; i < state.num_players; i++){
-            let ai = _player.Player();
-            ai.init({
-                name: "Player_".concat(i)
+    const createPlayers = (player_configs)=>{
+        _loopDefault.default(player_configs, (config)=>{
+            let player = _player.Player();
+            player.init({
+                is_human: config.is_human,
+                name: config.name,
+                el: config.el
             });
-            state.player_list.push(ai);
-        }
+            state.player_list.push(player);
+        });
     };
     const setNextActivePlayer = ()=>{
+        // TODO - effects are still implemented on original direction when in reverse
         // * current idx now becomes previous idx
         state.previous_player_idx = state.current_player_idx;
-        // * next player idx now becomes current idx
+        if (state.play_direction === -1) {
+            // * current player minus 1 becomes current player
+            let current_player_idx = state.current_player_idx - 1;
+            if (current_player_idx < 0) current_player_idx = state.num_players - 1;
+            state.current_player_idx = current_player_idx;
+        } else // * next player idx now becomes current idx
         state.current_player_idx = state.next_player_idx;
-        // * next player now becomes next + 1
-        let next_player_idx = state.next_player_idx + 1;
+        // * next player now becomes next + (1 || -1)
+        let next_player_idx = state.next_player_idx + state.play_direction;
         // * check if we have to loop back round
-        if (next_player_idx >= state.num_players) next_player_idx = 0;
-        state.next_player_idx = next_player_idx;
+        if (state.play_direction === -1) {
+            // * reverse standard direction
+            if (next_player_idx < 0) next_player_idx = state.num_players - 1;
+            state.next_player_idx = next_player_idx;
+        } else {
+            // * standard direction
+            if (next_player_idx >= state.num_players) next_player_idx = 0;
+            state.next_player_idx = next_player_idx;
+        }
         // * Get and update new previous
         let previous_player = state.player_list[state.previous_player_idx];
         // * Reset to idle
@@ -1181,6 +1216,9 @@ const PlayerManager = ()=>{
     const getPlayerList = ()=>{
         return state.player_list;
     };
+    const changePlayDirection = ()=>{
+        state.play_direction = state.play_direction * -1;
+    };
     return {
         init,
         createPlayers,
@@ -1191,12 +1229,13 @@ const PlayerManager = ()=>{
         getCurrentNextPlayerIdx,
         getCurrentPreviousPlayer,
         getCurrentPreviousPlayerIdx,
-        getPlayerList
+        getPlayerList,
+        changePlayDirection
     };
 };
 const Players = PlayerManager();
 
-},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Player/player_states":"g1ajd","../Utilities/debugDetail":"e4cZo"}],"92V2m":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Player/player_states":"g1ajd","../Utilities/debugDetail":"e4cZo","../Utilities/loop":"cwOcG"}],"92V2m":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Player", ()=>Player
@@ -1209,6 +1248,7 @@ const Player = ()=>{
     const state = {
         name: null,
         deck: [],
+        el: null,
         is_human: false,
         status: {
             play_state: _playerStates.IDLE,
@@ -1319,6 +1359,9 @@ const Player = ()=>{
     const getEffectState = ()=>{
         return state.status.effect;
     };
+    const getPlayerEl = ()=>{
+        return state.el;
+    };
     return {
         init,
         addCard,
@@ -1330,6 +1373,7 @@ const Player = ()=>{
         getCurrentCards,
         getIsHuman,
         getHandSize,
+        getPlayerEl,
         resetStatus,
         getStatus,
         updatePlayState,
@@ -1456,7 +1500,7 @@ exports.default = drawPlayerDecks = ()=>{
     _loopDefault.default(_managers.Players.getPlayerList(), (player)=>{
         const deck = player.getCurrentCards();
         // * get deck element
-        const deck_el = document.getElementById(player.getPlayerName()).querySelector('.card_list');
+        const deck_el = player.getPlayerEl().querySelector('.card_list');
         // * remove HTML
         deck_el.innerHTML = "";
         _loopDefault.default(deck, (card)=>{
@@ -1589,7 +1633,8 @@ exports.default = applyPowerEffect = (power)=>{
     switch(power){
         case _powers.CHANGE_DIRECTION:
             // * Change play direction
-            _outputToBoardDefault.default(`Direction of play is reversed! [TODO]`);
+            _outputToBoardDefault.default(`Direction of play is reversed!`);
+            _managers.Players.changePlayDirection();
             break;
         case _powers.CHANGE_SUIT:
             // * Change playable suit

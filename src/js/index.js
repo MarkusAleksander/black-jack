@@ -43,7 +43,28 @@ Deck.init({});
 // * ------ Preparation ------- * //
 
 // * Create the players
-Players.createPlayers();
+Players.createPlayers([
+    {
+        el: document.getElementById("Player_0"),
+        is_human: true,
+        name: "Human Player"
+    },
+    {
+        el: document.getElementById("Player_1"),
+        is_human: false,
+        name: "AI Player 1"
+    },
+    {
+        el: document.getElementById("Player_2"),
+        is_human: false,
+        name: "AI Player 2"
+    },
+    {
+        el: document.getElementById("Player_3"),
+        is_human: false,
+        name: "AI Player 3"
+    },
+]);
 
 // * prepare the deck
 Deck.prepareDeck();
@@ -58,8 +79,13 @@ Deck.dealCards(Players.getPlayerList());
 updateView();
 
 // * Assign interactions to view
-document.querySelector("#Player_0 .card_list").addEventListener("mousedown", onHumanPlayerCardSelect);
 document.querySelector("#pickup_deck").addEventListener("mousedown", handleCardPickup);
+
+const human_player = Players.getPlayerList().find(function (player) {
+    return player.getIsHuman();
+});
+
+human_player.getPlayerEl().querySelector(".card_list").addEventListener("mousedown", onHumanPlayerCardSelect);
 
 // *
 outputToBoard(`The starting card is a ${Deck.getDiscardDeckTopCard().name}`);

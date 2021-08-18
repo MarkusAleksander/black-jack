@@ -3,59 +3,11 @@ import { updateObject } from "./../Utilities/updateObject";
 
 import * as PLAYER_STATES from "./player_states";
 
-/**
- * Defines a Player Object and state of the player in the game
- * 
- * state: {
- *      * Define player name 
- *      name: null,
- *      * Provide an initial deck
- *      deck: [],
- *      * Is player human controlled?
- *      is_human: false,
- *      * Define turn states
- *      status: {
- *          * Idle / Playing
- *          play_state: PLAYER_STATES.IDLE,
- *          * No action / did an action
- *          action: PLAYER_STATES.ACTION_NO_ACTION,
- *          * No effect / is effected
- *          effect: PLAYER_STATES.EFFECT_NO_EFFECT,
- *      }
- * }
- * 
- * @returns {
- *      init,
- *      
- *      addCard,
- *      addCards,
- * 
- *      removeCardAtIndex,
- *      removeCards,
- *      removeCard
- * 
- *      getPlayerName,
- *      getCurrentCards,
- *      getIsHuman,
- *      getHandSize,
- *      
- *      resetStatus,
- *      getStatus,
- *      
- *      updatePlayState,
- *      getPlayState,
- * 
- *      updateActionState,
- *      getActionState,
- * 
- *      updateEffectState,
- *      getEffectState,
- * }
- */
 export const Player = () => {
     const state = {
         name: null,
         deck: [],
+        el: null,
         is_human: false,
 
         status: {
@@ -197,6 +149,10 @@ export const Player = () => {
         return state.status.effect;
     }
 
+    const getPlayerEl = () => {
+        return state.el;
+    }
+
     return {
         init,
 
@@ -211,6 +167,7 @@ export const Player = () => {
         getCurrentCards,
         getIsHuman,
         getHandSize,
+        getPlayerEl,
 
         resetStatus,
         getStatus,

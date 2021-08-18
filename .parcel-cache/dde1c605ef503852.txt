@@ -37,7 +37,7 @@
 125C:\Users\markh\Documents\Development\black-jack\node_modules\sharp\vendor\8.10.6\include\glib-2.0\gio\gconverterinputstream.h132612604640000000 0
 117C:\Users\markh\Documents\Development\black-jack\node_modules\regenerate-unicode-properties\Script\Meroitic_Cursive.js121436361000000000 0
 81C:\Users\markh\Documents\Development\black-jack\node_modules\fs-readdir-recursive132708363272009630 1
-52C:\Users\markh\Documents\Development\black-jack\dist132730770502848494 1
+52C:\Users\markh\Documents\Development\black-jack\dist132730847200801642 1
 83C:\Users\markh\Documents\Development\black-jack\node_modules\path-to-regexp\LICENSE131098734800000000 0
 75C:\Users\markh\Documents\Development\black-jack\node_modules\domelementtype132708363276194077 1
 97C:\Users\markh\Documents\Development\black-jack\node_modules\caniuse-lite\data\features\bigint.js121436361000000000 0
@@ -65,9 +65,9 @@
 69C:\Users\markh\Documents\Development\black-jack\src\img\card_back.jpg132707515931877614 0
 80C:\Users\markh\Documents\Development\black-jack\node_modules\json-stringify-safe132708363278062975 1
 97C:\Users\markh\Documents\Development\black-jack\node_modules\highlight.js\lib\languages\zephir.js121436361000000000 0
-90C:\Users\markh\Documents\Development\black-jack\src\js\Gameplay\Powers\applyPowerEffect.js132730767342717825 0
+90C:\Users\markh\Documents\Development\black-jack\src\js\Gameplay\Powers\applyPowerEffect.js132730844848450618 0
 97C:\Users\markh\Documents\Development\black-jack\node_modules\@babel\runtime\helpers\instanceof.js121012626000000000 0
-71C:\Users\markh\Documents\Development\black-jack\src\js\Player\player.js132730656016130546 0
+71C:\Users\markh\Documents\Development\black-jack\src\js\Player\player.js132730836431349498 0
 117C:\Users\markh\Documents\Development\black-jack\node_modules\postcss-modules-scope\node_modules\postcss\lib\result.js121436361000000000 0
 80C:\Users\markh\Documents\Development\black-jack\node_modules\lodash\isInteger.js121436361000000000 0
 111C:\Users\markh\Documents\Development\black-jack\node_modules\regenerate-unicode-properties\Script\Devanagari.js121436361000000000 0
@@ -207,7 +207,7 @@
 90C:\Users\markh\Documents\Development\black-jack\node_modules\whatwg-mimetype\lib\parser.js121436361000000000 0
 81C:\Users\markh\Documents\Development\black-jack\node_modules\lodash\fp\entries.js121436361000000000 0
 96C:\Users\markh\Documents\Development\black-jack\node_modules\@parcel\runtime-js\lib\loaders\node132708363530011135 1
-78C:\Users\markh\Documents\Development\black-jack\src\js\View\drawPlayerDecks.js132730749032505869 0
+78C:\Users\markh\Documents\Development\black-jack\src\js\View\drawPlayerDecks.js132730836620402711 0
 92C:\Users\markh\Documents\Development\black-jack\node_modules\which-boxed-primitive\.eslintrc121436361000000000 0
 98C:\Users\markh\Documents\Development\black-jack\node_modules\resolve\test\node_path\y\bbb\index.js121436361000000000 0
 60C:\Users\markh\Documents\Development\black-jack\src\js\Cards132724787949314447 1
@@ -234,7 +234,7 @@
 95C:\Users\markh\Documents\Development\black-jack\node_modules\highlight.js\lib\languages\diff.js121436361000000000 0
 63C:\Users\markh\Documents\Development\black-jack\src\js\Gameplay132730762171736455 1
 83C:\Users\markh\Documents\Development\black-jack\node_modules\resolve\lib\is-core.js121436361000000000 0
-63C:\Users\markh\Documents\Development\black-jack\src\js\index.js132730768852212313 0
+63C:\Users\markh\Documents\Development\black-jack\src\js\index.js132730839381921579 0
 77C:\Users\markh\Documents\Development\black-jack\node_modules\xtend\mutable.js121436361000000000 0
 87C:\Users\markh\Documents\Development\black-jack\node_modules\regenerate\LICENSE-MIT.txt121436361000000000 0
 82C:\Users\markh\Documents\Development\black-jack\node_modules\es-abstract\es2017.js121436361000000000 0
@@ -383,7 +383,7 @@
 94C:\Users\markh\Documents\Development\black-jack\node_modules\postcss-modules\build\saveJSON.js121436361000000000 0
 90C:\Users\markh\Documents\Development\black-jack\node_modules\public-encrypt\test\1024.priv121436361000000000 0
 105C:\Users\markh\Documents\Development\black-jack\node_modules\resolve\test\shadowed_core\node_modules\util132708363316737623 1
-73C:\Users\markh\Documents\Development\black-jack\src\js\Managers\player.js132730656016336034 0
+73C:\Users\markh\Documents\Development\black-jack\src\js\Managers\player.js132730847198697879 0
 71C:\Users\markh\Documents\Development\black-jack\src\js\Managers\deck.js132730656016130546 0
 96C:\Users\markh\Documents\Development\black-jack\node_modules\core-js\internals\inspect-source.js121436361000000000 0
 78C:\Users\markh\Documents\Development\black-jack\node_modules\yaml\parse-cst.js121436361000000000 0
@@ -19319,7 +19319,7 @@
 71C:\Users\markh\Documents\Development\black-jack\node_modules\.bin\which132708363341628251 0
 75C:\Users\markh\Documents\Development\black-jack\node_modules\.bin\which.cmd132708363341628251 0
 70C:\Users\markh\Documents\Development\black-jack\dist\felt.5a619177.png132730656008779822 0
-70C:\Users\markh\Documents\Development\black-jack\dist\index.227406fc.js132730770502718511 0
-74C:\Users\markh\Documents\Development\black-jack\dist\index.227406fc.js.map132730770502828505 0
+70C:\Users\markh\Documents\Development\black-jack\dist\index.227406fc.js132730847200703445 0
+74C:\Users\markh\Documents\Development\black-jack\dist\index.227406fc.js.map132730847200781589 0
 71C:\Users\markh\Documents\Development\black-jack\dist\index.8ca178e6.css132730656009099809 0
 63C:\Users\markh\Documents\Development\black-jack\dist\index.html132730656009099809 0

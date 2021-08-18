@@ -3,51 +3,67 @@ import { Player } from "../Player/player";
 import debugDetail from "../Utilities/debugDetail";
 import * as PLAYER_STATES from "../Player/player_states";
 
+import loop from "../Utilities/loop";
+
 const PlayerManager = () => {
 
     const state = {
         num_players: 4,
         player_list: [],
         current_player_idx: 0,
-        previous_player_idx: -1,
-        next_player_idx: 0
+        previous_player_idx: 3,
+        next_player_idx: 1,
+        play_direction: 1,
     }
 
     const init = (config) => {
         updateObject(state, config);
-
-        state.next_player_idx = state.current_player_idx + 1;
     }
 
-    const createPlayers = () => {
-        // * create human player
-        let human = Player();
-        human.init({
-            is_human: true,
-            name: "Player_0",
-        });
-        state.player_list.push(human);
+    const createPlayers = (player_configs) => {
 
-        for (let i = 1; i < state.num_players; i++) {
-            let ai = Player();
-            ai.init({
-                name: "Player_".concat(i)
+        loop(player_configs, (config) => {
+            let player = Player();
+
+            player.init({
+                is_human: config.is_human,
+                name: config.name,
+                el: config.el
             });
-            state.player_list.push(ai);
-        }
+
+            state.player_list.push(player);
+        });
     }
 
     const setNextActivePlayer = () => {
+
+        // TODO - effects are still implemented on original direction when in reverse
         // * current idx now becomes previous idx
         state.previous_player_idx = state.current_player_idx;
-        // * next player idx now becomes current idx
-        state.current_player_idx = state.next_player_idx;
 
-        // * next player now becomes next + 1
-        let next_player_idx = state.next_player_idx + 1;
+        if (state.play_direction === -1) {
+            // * current player minus 1 becomes current player
+            let current_player_idx = state.current_player_idx - 1;
+            if (current_player_idx < 0) current_player_idx = (state.num_players - 1);
+            state.current_player_idx = current_player_idx;
+        } else {
+            // * next player idx now becomes current idx
+            state.current_player_idx = state.next_player_idx;
+        }
+
+        // * next player now becomes next + (1 || -1)
+        let next_player_idx = state.next_player_idx + state.play_direction;
+
         // * check if we have to loop back round
-        if (next_player_idx >= state.num_players) next_player_idx = 0;
-        state.next_player_idx = next_player_idx;
+        if (state.play_direction === -1) {
+            // * reverse standard direction
+            if (next_player_idx < 0) next_player_idx = (state.num_players - 1);
+            state.next_player_idx = next_player_idx;
+        } else {
+            // * standard direction
+            if (next_player_idx >= state.num_players) next_player_idx = 0;
+            state.next_player_idx = next_player_idx;
+        }
 
         // * Get and update new previous
         let previous_player = state.player_list[state.previous_player_idx];
@@ -98,6 +114,10 @@ const PlayerManager = () => {
         return state.player_list;
     }
 
+    const changePlayDirection = () => {
+        state.play_direction = state.play_direction * -1;
+    }
+
     return {
         init,
         createPlayers,
@@ -109,6 +129,7 @@ const PlayerManager = () => {
         getCurrentPreviousPlayer,
         getCurrentPreviousPlayerIdx,
         getPlayerList,
+        changePlayDirection,
     }
 
 }

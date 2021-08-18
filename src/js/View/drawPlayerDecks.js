@@ -2,7 +2,7 @@ import loop from "./../Utilities/loop";
 import { Players, View } from "./../Managers/managers";
 
 // * Define player decks
-export default drawPlayerDecks = () => {
+const drawPlayerDecks = () => {
 
     loop(Players.getPlayerList(), (player) => {
         const deck = player.getCurrentCards();
@@ -21,3 +21,5 @@ export default drawPlayerDecks = () => {
         });
     });
 }
+
+export default drawPlayerDecks;

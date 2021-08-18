@@ -1,4 +1,4 @@
 package-lock.json
 .git
 node_modules
-.parcel-cache
+/.parcel-cache

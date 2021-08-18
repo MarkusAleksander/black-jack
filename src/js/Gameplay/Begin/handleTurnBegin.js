@@ -6,7 +6,7 @@ import chooseAIPlayerActionChoice from "../Begin/chooseAIPlayerActionChoice";
 
 import * as PLAYER_STATES from "./../../Player/player_states";
 
-export default handleTurnBegin = () => {
+const handleTurnBegin = () => {
 
     // * Resolve any effects
 
@@ -38,3 +38,5 @@ export default handleTurnBegin = () => {
         }
     }
 }
+
+export default handleTurnBegin;

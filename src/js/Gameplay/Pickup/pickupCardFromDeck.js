@@ -7,7 +7,7 @@ import outputToBoard from "../../View/outputToBoard";
 
 import * as PLAYER_STATES from "./../../Player/player_states";
 
-export default pickupCardFromDeck = () => {
+const pickupCardFromDeck = () => {
 
     debugDetail(`[pickupCardFromDeck] Picking up card`);
 
@@ -35,3 +35,5 @@ export default pickupCardFromDeck = () => {
     // * redraw the view
     updateView();
 }
+
+export default pickupCardFromDeck;

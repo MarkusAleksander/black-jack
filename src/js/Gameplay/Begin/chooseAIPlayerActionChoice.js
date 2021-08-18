@@ -4,7 +4,7 @@ import onAIPlayerCardSelect from "../Play/onAIPlayerCardSelect";
 import handleCardPickup from "../Pickup/handleCardPickup";
 
 // * Handle AI making play choice
-export default chooseAIPlayerActionChoice = () => {
+const chooseAIPlayerActionChoice = () => {
 
     // * Get current AI player
     const current_AI_player = Players.getCurrentActivePlayer();
@@ -35,3 +35,5 @@ export default chooseAIPlayerActionChoice = () => {
         handleCardPickup();
     }
 }
+
+export default chooseAIPlayerActionChoice;

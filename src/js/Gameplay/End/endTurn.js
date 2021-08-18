@@ -9,7 +9,7 @@ import onEndTurn from "./onEndTurn";
 import * as PLAYER_STATES from "./../../Player/player_states";
 
 // * handle ending a turn
-export default endTurn = () => {
+const endTurn = () => {
 
     // * resolve anything before confirm turn is ended
 
@@ -62,3 +62,5 @@ export default endTurn = () => {
         debugDetail(`[endTurn] ${Players.getCurrentActivePlayer().getPlayerName()} has won!`);
     }
 }
+
+export default endTurn;

@@ -3,7 +3,7 @@ import debugDetail from "../../Utilities/debugDetail";
 
 import handleTurnBegin from "../Begin/handleTurnBegin";
 
-export default onEndTurn = () => {
+const onEndTurn = () => {
 
     // * update current players
     Players.setNextActivePlayer();
@@ -13,3 +13,5 @@ export default onEndTurn = () => {
     // * begin next turn
     handleTurnBegin();
 }
+
+export default onEndTurn;

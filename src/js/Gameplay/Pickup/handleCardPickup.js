@@ -1,7 +1,9 @@
 import pickupCardFromDeck from "./pickupCardFromDeck";
 import endTurn from "../End/endTurn";
 
-export default handleCardPickup = (e) => {
+const handleCardPickup = (e) => {
     pickupCardFromDeck();
     endTurn();
 }
+
+export default handleCardPickup;

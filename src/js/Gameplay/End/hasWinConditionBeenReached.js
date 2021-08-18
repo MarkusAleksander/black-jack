@@ -2,7 +2,7 @@ import { Players } from "../../Managers/managers";
 import debugDetail from "../../Utilities/debugDetail";
 
 // * Test if a win condition has been reached
-export default hasWinConditionBeenReached = () => {
+const hasWinConditionBeenReached = () => {
 
     debugDetail(`[hasWinConditionBeenReached] Checking win condition`);
 
@@ -15,3 +15,5 @@ export default hasWinConditionBeenReached = () => {
     // TODO - last placed card should not be a power card and player needs to pick up
     return num_cards_remaining === 0;
 }
+
+export default hasWinConditionBeenReached;

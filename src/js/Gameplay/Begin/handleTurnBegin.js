@@ -1,5 +1,6 @@
 import debugDetail from "../../Utilities/debugDetail";
 import { Players } from "./../../Managers/managers";
+import outputToBoard from "../../View/outputToBoard";
 
 import resolvePowerEffectState from "../Powers/resolvePowerEffectState";
 import chooseAIPlayerActionChoice from "../Begin/chooseAIPlayerActionChoice";

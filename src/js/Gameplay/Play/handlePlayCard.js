@@ -1,5 +1,7 @@
 import { Deck, Players } from "./../../Managers/managers";
 import debugDetail from "../../Utilities/debugDetail";
+import outputToBoard from "../../View/outputToBoard";
+import updateView from "../../View/updateView";
 
 import * as PLAYER_STATES from "./../../Player/player_states";
 

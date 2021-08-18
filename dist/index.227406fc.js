@@ -73,7 +73,7 @@
         localRequire,
         module,
         module.exports,
-        this,
+        this
       );
     }
 
@@ -140,12 +140,76 @@
       this[globalName] = mainExports;
     }
   }
-})({"6cdEz":[function(require,module,exports) {
+})({"hkXzs":[function(require,module,exports) {
 var HMR_HOST = null;
 var HMR_PORT = null;
 var HMR_SECURE = false;
 var HMR_ENV_HASH = "69f74e7f31319ffd";
-module.bundle.HMR_BUNDLE_ID = "b3bb0a59227406fc"; // @flow
+module.bundle.HMR_BUNDLE_ID = "b3bb0a59227406fc";
+"use strict";
+function _createForOfIteratorHelper(o, allowArrayLike) {
+    var it;
+    if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
+        if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
+            if (it) o = it;
+            var i = 0;
+            var F = function F1() {
+            };
+            return {
+                s: F,
+                n: function n() {
+                    if (i >= o.length) return {
+                        done: true
+                    };
+                    return {
+                        done: false,
+                        value: o[i++]
+                    };
+                },
+                e: function e(_e) {
+                    throw _e;
+                },
+                f: F
+            };
+        }
+        throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
+    var normalCompletion = true, didErr = false, err;
+    return {
+        s: function s() {
+            it = o[Symbol.iterator]();
+        },
+        n: function n() {
+            var step = it.next();
+            normalCompletion = step.done;
+            return step;
+        },
+        e: function e(_e2) {
+            didErr = true;
+            err = _e2;
+        },
+        f: function f() {
+            try {
+                if (!normalCompletion && it.return != null) it.return();
+            } finally{
+                if (didErr) throw err;
+            }
+        }
+    };
+}
+function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+    for(var i = 0, arr2 = new Array(len); i < len; i++)arr2[i] = arr[i];
+    return arr2;
+}
 /* global HMR_HOST, HMR_PORT, HMR_ENV_HASH, HMR_SECURE */ /*::
 import type {
   HMRAsset,
@@ -186,46 +250,44 @@ function Module(moduleName) {
         data: module.bundle.hotData,
         _acceptCallbacks: [],
         _disposeCallbacks: [],
-        accept: function(fn) {
+        accept: function accept(fn) {
             this._acceptCallbacks.push(fn || function() {
             });
         },
-        dispose: function(fn) {
+        dispose: function dispose(fn) {
             this._disposeCallbacks.push(fn);
         }
     };
     module.bundle.hotData = undefined;
 }
 module.bundle.Module = Module;
-var checkedAssets /*: {|[string]: boolean|} */ , acceptedAssets /*: {|[string]: boolean|} */ , assetsToAccept /*: Array<[ParcelRequire, string]> */ ;
+var checkedAssets, acceptedAssets, assetsToAccept;
 function getHostname() {
     return HMR_HOST || (location.protocol.indexOf('http') === 0 ? location.hostname : 'localhost');
 }
 function getPort() {
     return HMR_PORT || location.port;
-}
-// eslint-disable-next-line no-redeclare
+} // eslint-disable-next-line no-redeclare
 var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
     var hostname = getHostname();
     var port = getPort();
     var protocol = HMR_SECURE || location.protocol == 'https:' && !/localhost|127.0.0.1|0.0.0.0/.test(hostname) ? 'wss' : 'ws';
-    var ws = new WebSocket(protocol + '://' + hostname + (port ? ':' + port : '') + '/');
-    // $FlowFixMe
-    ws.onmessage = function(event /*: {data: string, ...} */ ) {
+    var ws = new WebSocket(protocol + '://' + hostname + (port ? ':' + port : '') + '/'); // $FlowFixMe
+    ws.onmessage = function(event) {
         checkedAssets = {
-        } /*: {|[string]: boolean|} */ ;
+        };
         acceptedAssets = {
-        } /*: {|[string]: boolean|} */ ;
+        };
         assetsToAccept = [];
-        var data /*: HMRMessage */  = JSON.parse(event.data);
+        var data = JSON.parse(event.data);
         if (data.type === 'update') {
             // Remove error overlay if there is one
             removeErrorOverlay();
-            let assets = data.assets.filter((asset)=>asset.envHash === HMR_ENV_HASH
-            );
-            // Handle HMR Update
-            let handled = assets.every((asset)=>{
+            var assets = data.assets.filter(function(asset) {
+                return asset.envHash === HMR_ENV_HASH;
+            }); // Handle HMR Update
+            var handled = assets.every(function(asset) {
                 return asset.type === 'css' || asset.type === 'js' && hmrAcceptCheck(module.bundle.root, asset.id, asset.depsByBundle);
             });
             if (handled) {
@@ -241,21 +303,27 @@ if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
         }
         if (data.type === 'error') {
             // Log parcel errors to console
-            for (let ansiDiagnostic of data.diagnostics.ansi){
-                let stack = ansiDiagnostic.codeframe ? ansiDiagnostic.codeframe : ansiDiagnostic.stack;
-                console.error('🚨 [parcel]: ' + ansiDiagnostic.message + '\n' + stack + '\n\n' + ansiDiagnostic.hints.join('\n'));
+            var _iterator = _createForOfIteratorHelper(data.diagnostics.ansi), _step;
+            try {
+                for(_iterator.s(); !(_step = _iterator.n()).done;){
+                    var ansiDiagnostic = _step.value;
+                    var stack = ansiDiagnostic.codeframe ? ansiDiagnostic.codeframe : ansiDiagnostic.stack;
+                    console.error('🚨 [parcel]: ' + ansiDiagnostic.message + '\n' + stack + '\n\n' + ansiDiagnostic.hints.join('\n'));
+                } // Render the fancy html overlay
+            } catch (err) {
+                _iterator.e(err);
+            } finally{
+                _iterator.f();
             }
-            // Render the fancy html overlay
             removeErrorOverlay();
-            var overlay = createErrorOverlay(data.diagnostics.html);
-            // $FlowFixMe
+            var overlay = createErrorOverlay(data.diagnostics.html); // $FlowFixMe
             document.body.appendChild(overlay);
         }
     };
     ws.onerror = function(e) {
         console.error(e.message);
     };
-    ws.onclose = function(e) {
+    ws.onclose = function() {
         console.warn('[parcel] 🚨 Connection to the HMR server was lost');
     };
 }
@@ -269,11 +337,20 @@ function removeErrorOverlay() {
 function createErrorOverlay(diagnostics) {
     var overlay = document.createElement('div');
     overlay.id = OVERLAY_ID;
-    let errorHTML = '<div style="background: black; opacity: 0.85; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; font-family: Menlo, Consolas, monospace; z-index: 9999;">';
-    for (let diagnostic of diagnostics){
-        let stack = diagnostic.codeframe ? diagnostic.codeframe : diagnostic.stack;
-        errorHTML += `\n      <div>\n        <div style="font-size: 18px; font-weight: bold; margin-top: 20px;">\n          🚨 ${diagnostic.message}\n        </div>\n        <pre>\n          ${stack}\n        </pre>\n        <div>\n          ${diagnostic.hints.map((hint)=>'<div>' + hint + '</div>'
-        ).join('')}\n        </div>\n      </div>\n    `;
+    var errorHTML = '<div style="background: black; opacity: 0.85; font-size: 16px; color: white; position: fixed; height: 100%; width: 100%; top: 0px; left: 0px; padding: 30px; font-family: Menlo, Consolas, monospace; z-index: 9999;">';
+    var _iterator2 = _createForOfIteratorHelper(diagnostics), _step2;
+    try {
+        for(_iterator2.s(); !(_step2 = _iterator2.n()).done;){
+            var diagnostic = _step2.value;
+            var stack = diagnostic.codeframe ? diagnostic.codeframe : diagnostic.stack;
+            errorHTML += "\n      <div>\n        <div style=\"font-size: 18px; font-weight: bold; margin-top: 20px;\">\n          \uD83D\uDEA8 ".concat(diagnostic.message, "\n        </div>\n        <pre>\n          ").concat(stack, "\n        </pre>\n        <div>\n          ").concat(diagnostic.hints.map(function(hint) {
+                return '<div>' + hint + '</div>';
+            }).join(''), "\n        </div>\n      </div>\n    ");
+        }
+    } catch (err) {
+        _iterator2.e(err);
+    } finally{
+        _iterator2.f();
     }
     errorHTML += '</div>';
     overlay.innerHTML = errorHTML;
@@ -300,9 +377,7 @@ function updateLink(link) {
         if (link.parentNode !== null) // $FlowFixMe
         link.parentNode.removeChild(link);
     };
-    newLink.setAttribute('href', // $FlowFixMe
-    link.getAttribute('href').split('?')[0] + '?' + Date.now());
-    // $FlowFixMe
+    newLink.setAttribute('href', link.getAttribute('href').split('?')[0] + '?' + Date.now()); // $FlowFixMe
     link.parentNode.insertBefore(newLink, link.nextSibling);
 }
 var cssTimeout = null;
@@ -312,7 +387,7 @@ function reloadCSS() {
         var links = document.querySelectorAll('link[rel="stylesheet"]');
         for(var i = 0; i < links.length; i++){
             // $FlowFixMe[incompatible-type]
-            var href /*: string */  = links[i].getAttribute('href');
+            var href = links[i].getAttribute('href');
             var hostname = getHostname();
             var servedFromHMRServer = hostname === 'localhost' ? new RegExp('^(https?:\\/\\/(0.0.0.0|127.0.0.1)|localhost):' + getPort()).test(href) : href.indexOf(hostname + ':' + getPort());
             var absolute = /^https?:\/\//i.test(href) && href.indexOf(window.location.origin) !== 0 && !servedFromHMRServer;
@@ -321,14 +396,14 @@ function reloadCSS() {
         cssTimeout = null;
     }, 50);
 }
-function hmrApply(bundle /*: ParcelRequire */ , asset /*:  HMRAsset */ ) {
+function hmrApply(bundle, asset) {
     var modules = bundle.modules;
     if (!modules) return;
     if (asset.type === 'css') {
         reloadCSS();
         return;
     }
-    let deps = asset.depsByBundle[bundle.HMR_BUNDLE_ID];
+    var deps = asset.depsByBundle[bundle.HMR_BUNDLE_ID];
     if (deps) {
         var fn = new Function('require', 'module', 'exports', asset.output);
         modules[asset.id] = [
@@ -337,7 +412,7 @@ function hmrApply(bundle /*: ParcelRequire */ , asset /*:  HMRAsset */ ) {
         ];
     } else if (bundle.parent) hmrApply(bundle.parent, asset);
 }
-function hmrAcceptCheck(bundle /*: ParcelRequire */ , id /*: string */ , depsByBundle /*: ?{ [string]: { [string]: string } }*/ ) {
+function hmrAcceptCheck(bundle, id, depsByBundle) {
     var modules = bundle.modules;
     if (!modules) return;
     if (depsByBundle && !depsByBundle[bundle.HMR_BUNDLE_ID]) {
@@ -358,7 +433,7 @@ function hmrAcceptCheck(bundle /*: ParcelRequire */ , id /*: string */ , depsByB
         return hmrAcceptCheck(v[0], v[1], null);
     });
 }
-function hmrAcceptRun(bundle /*: ParcelRequire */ , id /*: string */ ) {
+function hmrAcceptRun(bundle, id) {
     var cached = bundle.cache[id];
     bundle.hotData = {
     };
@@ -452,7 +527,84 @@ human_player.getPlayerEl().querySelector(".card_list").addEventListener("mousedo
 // *
 _outputToBoardDefault.default(`The starting card is a ${_managers.Deck.getDiscardDeckTopCard().name}`);
 
-},{"./Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./View/outputToBoard":"W6Eqs","./View/updateView":"ilqS8","./Gameplay/Play/onHumanPlayerCardSelect":"hlr0u","./Gameplay/Pickup/handleCardPickup":"flFqQ"}],"5IueX":[function(require,module,exports) {
+},{"./View/updateView":"ilqS8","./View/outputToBoard":"W6Eqs","./Gameplay/Play/onHumanPlayerCardSelect":"hlr0u","./Gameplay/Pickup/handleCardPickup":"flFqQ","./Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"ilqS8":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _drawPlayerDecks = require("./drawPlayerDecks");
+var _drawPlayerDecksDefault = parcelHelpers.interopDefault(_drawPlayerDecks);
+var _drawDiscardDeck = require("./drawDiscardDeck");
+var _drawDiscardDeckDefault = parcelHelpers.interopDefault(_drawDiscardDeck);
+exports.default = updateView = ()=>{
+    // * Draw player decks
+    _drawPlayerDecksDefault.default();
+    // * Draw discard decks
+    _drawDiscardDeckDefault.default();
+};
+
+},{"./drawPlayerDecks":"elYcq","./drawDiscardDeck":"1JqOF","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"elYcq":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _loop = require("./../Utilities/loop");
+var _loopDefault = parcelHelpers.interopDefault(_loop);
+var _managers = require("./../Managers/managers");
+exports.default = drawPlayerDecks = ()=>{
+    _loopDefault.default(_managers.Players.getPlayerList(), (player)=>{
+        const deck = player.getCurrentCards();
+        // * get deck element
+        const deck_el = player.getPlayerEl().querySelector('.card_list');
+        // * remove HTML
+        deck_el.innerHTML = "";
+        _loopDefault.default(deck, (card)=>{
+            deck_el.insertAdjacentHTML("beforeend", _managers.View.createListedCardHTML(card, true));
+        });
+    });
+};
+
+},{"./../Utilities/loop":"cwOcG","./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"cwOcG":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+function loop(array, cb, dir = 1, scope) {
+    if (!Array.isArray(array) && // eslint-disable-next-line no-prototype-builtins
+    !NodeList.prototype.isPrototypeOf(array) && // eslint-disable-next-line no-prototype-builtins
+    !HTMLCollection.prototype.isPrototypeOf(array)) return;
+    let i = dir == 1 ? 0 : array.length - 1, l = dir == 1 ? array.length : 0;
+    for(; dir == 1 ? i < l : i > l; dir == 1 ? i++ : i--)cb.call(scope, array[i], i);
+}
+exports.default = loop;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"JacNc":[function(require,module,exports) {
+exports.interopDefault = function(a) {
+    return a && a.__esModule ? a : {
+        default: a
+    };
+};
+exports.defineInteropFlag = function(a) {
+    Object.defineProperty(a, '__esModule', {
+        value: true
+    });
+};
+exports.exportAll = function(source, dest) {
+    Object.keys(source).forEach(function(key) {
+        if (key === 'default' || key === '__esModule') return;
+        // Skip duplicate re-exports when they have the same value.
+        if (key in dest && dest[key] === source[key]) return;
+        Object.defineProperty(dest, key, {
+            enumerable: true,
+            get: function() {
+                return source[key];
+            }
+        });
+    });
+    return dest;
+};
+exports.export = function(dest, destName, get) {
+    Object.defineProperty(dest, destName, {
+        enumerable: true,
+        get: get
+    });
+};
+
+},{}],"5IueX":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 // * Export managers through here
@@ -469,7 +621,7 @@ var _deckJs = require("./deck.js");
 var _playerJs = require("./player.js");
 var _viewJs = require("./view.js");
 
-},{"./game.js":"37AZp","./deck.js":"iQ0ND","./player.js":"e3V8h","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./view.js":"fuhyS"}],"37AZp":[function(require,module,exports) {
+},{"./game.js":"37AZp","./deck.js":"iQ0ND","./player.js":"e3V8h","./view.js":"fuhyS","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"37AZp":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Game", ()=>Game
@@ -515,39 +667,7 @@ const updateObject = (oldObject, newObj)=>{
     for(const key in newObj)if (Object.hasOwnProperty.call(newObj, key)) oldObject[key] = newObj[key];
 };
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"JacNc":[function(require,module,exports) {
-exports.interopDefault = function(a) {
-    return a && a.__esModule ? a : {
-        default: a
-    };
-};
-exports.defineInteropFlag = function(a) {
-    Object.defineProperty(a, '__esModule', {
-        value: true
-    });
-};
-exports.exportAll = function(source, dest) {
-    Object.keys(source).forEach(function(key) {
-        if (key === 'default' || key === '__esModule') return;
-        // Skip duplicate re-exports when they have the same value.
-        if (key in dest && dest[key] === source[key]) return;
-        Object.defineProperty(dest, key, {
-            enumerable: true,
-            get: function() {
-                return source[key];
-            }
-        });
-    });
-    return dest;
-};
-exports.export = function(dest, destName, get) {
-    Object.defineProperty(dest, destName, {
-        enumerable: true,
-        get: get
-    });
-};
-
-},{}],"iQ0ND":[function(require,module,exports) {
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"iQ0ND":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Deck", ()=>Deck
@@ -688,7 +808,13 @@ const DeckManager = ()=>{
 };
 const Deck = DeckManager();
 
-},{"./../Cards/cards":"7d7DK","./../Utilities/loop":"cwOcG","./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Utilities/debugDetail":"e4cZo"}],"7d7DK":[function(require,module,exports) {
+},{"../Utilities/debugDetail":"e4cZo","./../Cards/cards":"7d7DK","./../Utilities/loop":"cwOcG","./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e4cZo":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+exports.default = debugDetail = (detail)=>console.log(detail)
+;
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"7d7DK":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "cards", ()=>cards
@@ -1083,7 +1209,7 @@ const cards = [
     }, 
 ];
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./powers":"9DqYi"}],"9DqYi":[function(require,module,exports) {
+},{"./powers":"9DqYi","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"9DqYi":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "PICKUP_2", ()=>PICKUP_2
@@ -1105,24 +1231,6 @@ const ANOTHER_TURN = "ANOTHER_TURN";
 const CHANGE_DIRECTION = "CHANGE_DIRECTION";
 const CHANGE_SUIT = "CHANGE_SUIT";
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"cwOcG":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-function loop(array, cb, dir = 1, scope) {
-    if (!Array.isArray(array) && // eslint-disable-next-line no-prototype-builtins
-    !NodeList.prototype.isPrototypeOf(array) && // eslint-disable-next-line no-prototype-builtins
-    !HTMLCollection.prototype.isPrototypeOf(array)) return;
-    let i = dir == 1 ? 0 : array.length - 1, l = dir == 1 ? array.length : 0;
-    for(; dir == 1 ? i < l : i > l; dir == 1 ? i++ : i--)cb.call(scope, array[i], i);
-}
-exports.default = loop;
-
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e4cZo":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-exports.default = debugDetail = (detail)=>console.log(detail)
-;
-
 },{"@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"e3V8h":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
@@ -1140,13 +1248,22 @@ const PlayerManager = ()=>{
         num_players: 4,
         player_list: [],
         current_player_idx: 0,
-        previous_player_idx: -1,
-        next_player_idx: 0,
+        previous_player_idx: null,
+        next_player_idx: null,
         play_direction: 1
     };
     const init = (config)=>{
         _updateObject.updateObject(state, config);
-        state.next_player_idx = state.current_player_idx + 1;
+        state.previous_player_idx = determinePreviousPlayerIdx();
+        state.next_player_idx = determineNextPlayerIdx();
+    };
+    const determineNextPlayerIdx = ()=>{
+        let next_idx = state.current_player_idx + state.play_direction;
+        return next_idx < 0 ? state.num_players - 1 : next_idx >= state.num_players ? 0 : next_idx;
+    };
+    const determinePreviousPlayerIdx = ()=>{
+        let prev_idx = state.current_player_idx - state.play_direction;
+        return prev_idx < 0 ? state.num_players - 1 : prev_idx >= state.num_players ? 0 : prev_idx;
     };
     const createPlayers = (player_configs)=>{
         _loopDefault.default(player_configs, (config)=>{
@@ -1160,39 +1277,21 @@ const PlayerManager = ()=>{
         });
     };
     const setNextActivePlayer = ()=>{
-        // TODO - effects are still implemented on original direction when in reverse
-        // * current idx now becomes previous idx
-        state.previous_player_idx = state.current_player_idx;
-        if (state.play_direction === -1) {
-            // * current player minus 1 becomes current player
-            let current_player_idx = state.current_player_idx - 1;
-            if (current_player_idx < 0) current_player_idx = state.num_players - 1;
-            state.current_player_idx = current_player_idx;
-        } else // * next player idx now becomes current idx
+        // * set the next player to current
         state.current_player_idx = state.next_player_idx;
-        // * next player now becomes next + (1 || -1)
-        let next_player_idx = state.next_player_idx + state.play_direction;
-        // * check if we have to loop back round
-        if (state.play_direction === -1) {
-            // * reverse standard direction
-            if (next_player_idx < 0) next_player_idx = state.num_players - 1;
-            state.next_player_idx = next_player_idx;
-        } else {
-            // * standard direction
-            if (next_player_idx >= state.num_players) next_player_idx = 0;
-            state.next_player_idx = next_player_idx;
-        }
+        // * current idx now becomes previous idx
+        state.previous_player_idx = determinePreviousPlayerIdx();
         // * Get and update new previous
         let previous_player = state.player_list[state.previous_player_idx];
         // * Reset to idle
         previous_player.resetStatus();
+        // * next player now becomes next + (1 || -1)
+        state.next_player_idx = determineNextPlayerIdx();
         // * Get and update new current player
         let current_player = state.player_list[state.current_player_idx];
         // * Ensure no effects are in place
         if (current_player.getEffectState() === _playerStates.EFFECT_NO_EFFECT) // * unaffected, normal play
         current_player.updatePlayState(_playerStates.TO_PLAY);
-        // * Get and update new next player if needed
-        let next_player = state.player_list[state.next_player_idx];
         _debugDetailDefault.default(`Current active player is now: ${current_player.getPlayerName()}`);
     };
     const getCurrentActivePlayer = ()=>{
@@ -1218,6 +1317,8 @@ const PlayerManager = ()=>{
     };
     const changePlayDirection = ()=>{
         state.play_direction = state.play_direction * -1;
+        // * set next to previous player
+        state.next_player_idx = state.previous_player_idx;
     };
     return {
         init,
@@ -1235,7 +1336,7 @@ const PlayerManager = ()=>{
 };
 const Players = PlayerManager();
 
-},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","../Player/player_states":"g1ajd","../Utilities/debugDetail":"e4cZo","../Utilities/loop":"cwOcG"}],"92V2m":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","../Player/player":"92V2m","../Utilities/debugDetail":"e4cZo","../Player/player_states":"g1ajd","../Utilities/loop":"cwOcG","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"92V2m":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "Player", ()=>Player
@@ -1385,7 +1486,7 @@ const Player = ()=>{
     };
 };
 
-},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./player_states":"g1ajd","../Utilities/debugDetail":"e4cZo"}],"g1ajd":[function(require,module,exports) {
+},{"../Utilities/debugDetail":"e4cZo","./../Utilities/updateObject":"e3rXy","./player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"g1ajd":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "IDLE", ()=>IDLE
@@ -1466,7 +1567,16 @@ const ViewManager = ()=>{
 };
 const View = ViewManager();
 
-},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"W6Eqs":[function(require,module,exports) {
+},{"./../Utilities/updateObject":"e3rXy","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"1JqOF":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+var _managers = require("./../Managers/managers");
+exports.default = drawDiscardDeck = ()=>{
+    let card = _managers.Deck.getDiscardDeck()[0];
+    _managers.View.getDiscardDeck().innerHTML = _managers.View.createCardHTML(card, true);
+};
+
+},{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"W6Eqs":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _managers = require("./../Managers/managers");
@@ -1474,48 +1584,6 @@ exports.default = outputToBoard = (message)=>{
     const update_board = _managers.View.getGameUpdateBoard();
     update_board.insertAdjacentHTML("beforeend", `<p>${message}</p>`);
     update_board.scrollTop = update_board.scrollHeight;
-};
-
-},{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"ilqS8":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _drawPlayerDecks = require("./drawPlayerDecks");
-var _drawPlayerDecksDefault = parcelHelpers.interopDefault(_drawPlayerDecks);
-var _drawDiscardDeck = require("./drawDiscardDeck");
-var _drawDiscardDeckDefault = parcelHelpers.interopDefault(_drawDiscardDeck);
-exports.default = updateView = ()=>{
-    // * Draw player decks
-    _drawPlayerDecksDefault.default();
-    // * Draw discard decks
-    _drawDiscardDeckDefault.default();
-};
-
-},{"./drawPlayerDecks":"elYcq","./drawDiscardDeck":"1JqOF","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"elYcq":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _loop = require("./../Utilities/loop");
-var _loopDefault = parcelHelpers.interopDefault(_loop);
-var _managers = require("./../Managers/managers");
-exports.default = drawPlayerDecks = ()=>{
-    _loopDefault.default(_managers.Players.getPlayerList(), (player)=>{
-        const deck = player.getCurrentCards();
-        // * get deck element
-        const deck_el = player.getPlayerEl().querySelector('.card_list');
-        // * remove HTML
-        deck_el.innerHTML = "";
-        _loopDefault.default(deck, (card)=>{
-            deck_el.insertAdjacentHTML("beforeend", _managers.View.createListedCardHTML(card, true));
-        });
-    });
-};
-
-},{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./../Utilities/loop":"cwOcG"}],"1JqOF":[function(require,module,exports) {
-var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
-parcelHelpers.defineInteropFlag(exports);
-var _managers = require("./../Managers/managers");
-exports.default = drawDiscardDeck = ()=>{
-    let card = _managers.Deck.getDiscardDeck()[0];
-    _managers.View.getDiscardDeck().innerHTML = _managers.View.createCardHTML(card, true);
 };
 
 },{"./../Managers/managers":"5IueX","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"hlr0u":[function(require,module,exports) {
@@ -1603,7 +1671,7 @@ exports.default = endTurn = ()=>{
     }
 };
 
-},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","./../../View/outputToBoard":"W6Eqs","./hasWinConditionBeenReached":"k2mNQ","./../Powers/applyPowerEffect":"b1tz2","./../Powers/resolvePowerEffectState":"f9qHk","./../../Player/player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc","./onEndTurn":"jRj6l"}],"k2mNQ":[function(require,module,exports) {
+},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","./../../View/outputToBoard":"W6Eqs","./hasWinConditionBeenReached":"k2mNQ","./../Powers/applyPowerEffect":"b1tz2","./../Powers/resolvePowerEffectState":"f9qHk","./onEndTurn":"jRj6l","./../../Player/player_states":"g1ajd","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}],"k2mNQ":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 var _managers = require("../../Managers/managers");
@@ -1926,6 +1994,6 @@ exports.default = onEndTurn = ()=>{
     _handleTurnBeginDefault.default();
 };
 
-},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","../Begin/handleTurnBegin":"ichSI","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}]},["6cdEz","23obh"], "23obh", "parcelRequirefe86")
+},{"./../../Managers/managers":"5IueX","../../Utilities/debugDetail":"e4cZo","../Begin/handleTurnBegin":"ichSI","@parcel/transformer-js/src/esmodule-helpers.js":"JacNc"}]},["hkXzs","23obh"], "23obh", "parcelRequirefe86")
 
 //# sourceMappingURL=index.227406fc.js.map
